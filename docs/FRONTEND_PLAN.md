@@ -236,15 +236,23 @@ The host uses a hand-written `AppLocalizations` map (`services/localization_serv
 
 ## 9. Frontend checklists
 
-**M0**
-- [ ] `LivelihoodRepository` + `Seed…` implementation (UI works with no server)
-- [ ] Models + JSON parsing for the report contract ([BACKEND_PLAN](BACKEND_PLAN.md) §6)
-- [ ] `livelihood_strings.dart` (en + mr)
-- [ ] Widgets: trust label, badges, resource card, idea card, footer
-- [ ] S1 home, S2 intake (5 steps), S3 location picker, S4 report, S5 resources
+**Slice 1: done (branch `frontend`)**: report side, runs with no server; 15 tests, `flutter analyze` clean
+- [x] `LivelihoodRepository` + `Seed…` implementation (bundled report built by the backend from SAMPLE data)
+- [x] Models + JSON parsing for the report contract ([BACKEND_PLAN](BACKEND_PLAN.md) §6), with **no numeric score anywhere**
+- [x] `livelihood_strings.dart` (en + mr draft; hi/kn fall back to en); `{key, params}` rendering
+- [x] Widgets: status pills (icon + word), trust label, resource card, idea card, analysis card, weather bars (Sample), footer
+- [x] S1 home, S4 report, S5 resources (filter), S7 policy; `livelihoodRoutes` ready to register in the host
+- [x] Large-text (2×) overflow fixed; contrast: saffron text uses a darker orange on light surfaces (`lvEmphasis`)
+- [x] Throwaway shell (`lib/shell/`): theme, language and theme switch. Deleted at merge
+
+**Slice 2: next**
+- [ ] S2 intake form (5 steps) with unit conversion, S3 location picker
+- [ ] `Remote…` repository on the host `ApiClient` (demo route first, then the real routes)
+- [ ] Hive cache of the last report; offline line
 - [ ] Dashboard card + route registration in the host
-- [ ] `Remote…` repository wired to the backend once it is up
-- [ ] Hive cache of the last report
+- [ ] Idea detail screen; delete-my-answers
 
 **Later**
-- [ ] Idea detail, weather chart, schemes, Ask screen, policy page, Hindi, delete-my-answers screen, FRC confirm flow, offline refresh banner
+- [ ] Weather chart with real data, schemes, Ask screen, Hindi, FRC confirm flow, offline refresh banner
+
+**Known design note (host-wide):** white text on the brand saffron button (`#FF7A00`) is 2.6:1, below WCAG AA (3:1 for large text). Slice 1 keeps the host's button style for consistency; the team should decide whether to darken the button or use dark text (6.8:1) across the whole app.
