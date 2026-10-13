@@ -14,4 +14,6 @@ from ..schemas import Idea, WildlifeRisk
 def wildlife_risk(idea: Idea, *, protected_near: bool) -> WildlifeRisk:
     if protected_near and idea.touches_forest:
         return WildlifeRisk.NEEDS_PERMISSION
+    if protected_near and idea.wildlife_risk is WildlifeRisk.LOW:
+        return WildlifeRisk.MEDIUM  # never show "low" next to "Ask the Forest Department first"
     return idea.wildlife_risk

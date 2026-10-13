@@ -148,6 +148,8 @@ class Reason(BaseModel):
 
 
 class LandIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")  # we never ask caste, income or IDs (rule L8)
+
     area_value: float | None = Field(default=None, gt=0)
     area_unit: AreaUnit = AreaUnit.HECTARE
     land_type: LandType | None = None
@@ -155,6 +157,8 @@ class LandIn(BaseModel):
 
 
 class LocationIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     lat: float = Field(ge=-90, le=90)
     lng: float = Field(ge=-180, le=180)
     accuracy_m: float | None = Field(default=None, ge=0)
@@ -162,6 +166,8 @@ class LocationIn(BaseModel):
 
 
 class LivestockIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     cow: int = Field(default=0, ge=0, le=999)
     buffalo: int = Field(default=0, ge=0, le=999)
     bullock: int = Field(default=0, ge=0, le=999)

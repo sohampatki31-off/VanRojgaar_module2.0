@@ -46,4 +46,5 @@ def test_forest_ideas_need_permission_near_protected_area() -> None:
     farm = _idea(wildlife_risk="low")
     assert wildlife_risk(forest, protected_near=True) is WildlifeRisk.NEEDS_PERMISSION
     assert wildlife_risk(forest, protected_near=False) is WildlifeRisk.MEDIUM
-    assert wildlife_risk(farm, protected_near=True) is WildlifeRisk.LOW
+    assert wildlife_risk(farm, protected_near=True) is WildlifeRisk.MEDIUM
+    assert wildlife_risk(farm, protected_near=False) is WildlifeRisk.LOW

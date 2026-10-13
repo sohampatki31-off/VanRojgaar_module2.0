@@ -34,7 +34,7 @@ Module 4 of VanMitra: a personal **livelihood report** for one landowner (land, 
 
 ## Working prompt (how to run a session here)
 
-> You are building VanMitra Module 4. Work branch by branch: **`backend`** → **`frontend`** → **`integration`**. Finish **one slice of backend** (tests green), commit and push it, then build **the matching slice of frontend** against the same report contract (`docs/BACKEND_PLAN.md` §6), commit and push, then **stop and report**. Never push to `main`; never merge `integration` without being asked. Before each slice, re-read the rules above and `docs/OPEN_QUESTIONS.md`. Use the skills below at the step named; skip a skill that does not fit the stack and say why.
+> You are building VanMitra Module 4. Work branch by branch: **`backend`** → **`frontend`** → **`integration`**. Finish **one slice of backend** (tests green), commit and push it, then build **the matching slice of frontend** against the same report contract (`docs/BACKEND_PLAN.md` §6), commit and push, then **stop and report**. Do not push to `main` (it holds only the planning docs; the initial docs commit was the one exception); never merge `integration` without being asked. Before each slice, re-read the rules above and `docs/OPEN_QUESTIONS.md`. Use the skills below at the step named; skip a skill that does not fit the stack and say why.
 
 | Step | Skill | Use it for |
 |---|---|---|

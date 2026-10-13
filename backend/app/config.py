@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     env: str = "development"
     cors_origins: list[str] = ["*"]
 
-    livelihood_demo_endpoints: bool = True
+    # Off unless switched on: the demo route is unauthenticated and serves SAMPLE data.
+    livelihood_demo_endpoints: bool = False
     livelihood_default_radius_m: int = 5000
     livelihood_max_radius_m: int = 10000
 

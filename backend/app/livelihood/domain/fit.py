@@ -146,7 +146,6 @@ def evaluate_idea(
         past_work_match = bool(set(profile.past_work) & set(idea.p_hints.past_work))
         counts = profile.animal_counts
         animal_match = any(counts.get(a, 0) > 0 for a in idea.p_hints.animals)
-        p = cfg.neutral
         p += cfg.p_past_work_bonus if past_work_match else 0.0
         p += cfg.p_animal_bonus if animal_match else 0.0
         p += cfg.p_workers_bonus if (profile.family_workers or 0) >= 2 else 0.0

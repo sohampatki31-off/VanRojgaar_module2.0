@@ -184,14 +184,11 @@ def test_tiny_land_flags_farm_ideas(
         }
     )
     r = _build(small, records, village, ideas, dataset, radius_m=5000)
-    flagged = {i.code for i in r.ideas if any(f.key == "flag.needs_more_land" for f in i.flags)}
-    # millets / fruit trees are not necessarily in the top five, so check the evaluation directly
-    from app.livelihood.domain.fit import evaluate_idea
-
-    millets = next(i for i in ideas if i.code == "millets_pulses")
-    ev = evaluate_idea(millets, resources=[], profile=small)
-    assert any(f.key == "flag.needs_more_land" for f in ev.flags)
-    assert flagged <= {i.code for i in r.ideas}
+    needs_land = {i.code: i.min_land_ha for i in ideas if i.min_land_ha and i.min_land_ha > 0.05}
+    shown = [i for i in r.ideas if i.code in needs_land]
+    assert shown, "expected at least one land-hungry idea in the top five"
+    for card in shown:
+        assert any(f.key == "flag.needs_more_land" for f in card.flags), card.code
 
 
 def test_protected_area_close_by_flags_every_idea(
@@ -269,6 +266,24 @@ def test_profile_rejects_unknown_codes_and_extra_fields() -> None:
         ProfileIn.model_validate({"caste": "x"})  # we never ask (rule L8)
     with pytest.raises(ValueError):
         ProfileIn.model_validate({"income": 100000})
+    for nested in (
+        {"land": {"income": 1}},
+        {"livestock": {"caste": "x"}},
+        {"location": {"lat": 19.7, "lng": 73.2, "caste": "x"}},
+    ):
+        with pytest.raises(ValueError):
+            ProfileIn.model_validate(nested)
+
+
+def test_own_well_means_no_false_no_water_constraint(
+    records: list[ResourceRecord], village: VillageGeo, ideas: list[Idea], dataset: DatasetMeta
+) -> None:
+    far = ProfileIn.model_validate(
+        {"location": {"lat": 21.0, "lng": 79.0, "source": "gps"}, "assets": ["well"]}
+    )
+    r = _build(far, records, village, ideas, dataset)
+    assert not any(c.key == "analysis.no_water_nearby" for c in r.analysis.constraints)
+    assert any(s.key == "analysis.own_water_source" for s in r.analysis.strengths)
 
 
 def test_draft_ideas_are_marked_draft(

@@ -24,6 +24,14 @@ def _nearest(resources: Sequence[LabelledResource], kinds: frozenset[ResourceKin
     return round(min(ds)) if ds else None
 
 
+def _own_water(profile: ProfileIn) -> bool:
+    """He says he has a well, borewell or pond of his own (told by him, not verified)."""
+    water = profile.land.water_on_land if profile.land else None
+    return bool({"well", "borewell", "farm_pond"} & set(profile.assets)) or (
+        water is not None and water.value in ("open_well", "borewell")
+    )
+
+
 def build_analysis(
     *,
     profile: ProfileIn | None,
@@ -58,6 +66,8 @@ def build_analysis(
                 },
             )
         )
+    elif profile is not None and _own_water(profile):
+        strengths.append(Reason(key="analysis.own_water_source"))
     else:
         constraints.append(Reason(key="analysis.no_water_nearby", params={"radius_m": radius_m}))
 

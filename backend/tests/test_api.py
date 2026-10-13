@@ -6,9 +6,20 @@ from app.main import create_app
 
 
 @pytest.fixture
-def client() -> TestClient:
+def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
+    monkeypatch.setenv("VANMITRA_LIVELIHOOD_DEMO_ENDPOINTS", "true")
     get_settings.cache_clear()
-    return TestClient(create_app())
+    yield TestClient(create_app())  # type: ignore[misc]
+    get_settings.cache_clear()
+
+
+def test_demo_endpoints_are_off_by_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("VANMITRA_LIVELIHOOD_DEMO_ENDPOINTS", raising=False)
+    get_settings.cache_clear()
+    try:
+        assert get_settings().livelihood_demo_endpoints is False
+    finally:
+        get_settings.cache_clear()
 
 
 def test_health(client: TestClient) -> None:
