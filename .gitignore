@@ -1,0 +1,44 @@
+# Source material kept locally only (repo is public)
+previous/
+*.pdf
+*.docx
+*.jpeg
+*.jpg
+*.png
+!frontend/assets/**/*.png
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+google-services.json
+*.pem
+*.key
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Flutter / Dart
+frontend/.dart_tool/
+frontend/build/
+frontend/.flutter-plugins*
+frontend/.packages
+frontend/pubspec.lock
+frontend/android/.gradle/
+frontend/android/local.properties
+frontend/ios/Pods/
+
+# Editors / OS
+.vscode/
+.idea/
+.claude/
+.DS_Store
+Thumbs.db
