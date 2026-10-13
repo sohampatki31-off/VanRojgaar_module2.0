@@ -29,7 +29,7 @@ Module 4 of VanMitra: a personal **livelihood report** for one landowner (land, 
 ## Conventions
 - Domain rules are **pure functions** in `domain/` (no DB, no HTTP) with unit tests; DB tests only against a throwaway database.
 - Weights, bands, radius live in config (`domain/config.py` / `lv_config`), not scattered constants.
-- Radius default **5000 m**, server cap 10000 m. Exact distance computed in a local azimuthal-equidistant projection; `$geoNear` only finds candidates.
+- Radius default **5000 m**, server cap 10000 m. Exact distance computed in a local azimuthal-equidistant projection; the database only finds candidates (`$geoIntersects` with a circumscribed circle polygon).
 - Commands: Flutter `flutter analyze`, `flutter test`; backend `ruff check`, `ruff format --check`, `mypy app scripts`, `pytest -q`.
 
 ## Working prompt (how to run a session here)

@@ -58,7 +58,7 @@ Legend: **P0** must be in the 06:00 demo · **P1** should be · **P2** nice.
 
 | # | Task | Track | Pri |
 |---|---|---|---|
-| 10 | `models.py`, `schemas.py`, indexes entry; `service.py` (`centre_for`, `$geoNear`, exact distance, tags) | BE | P0 |
+| 10 | `models.py`, `schemas.py`, indexes entry; `service.py` (`centre_for`, `$geoIntersects` candidates, exact distance, tags) | BE | P0 |
 | 11 | `router.py`: `PUT/GET/DELETE /profile`, `POST /report`, `GET /report/latest`, `POST /resources/nearby` | BE | P0 |
 | 12 | `[USER RUNS]` `setup_mongo.py` (indexes), `seed_livelihood.py`, loader on the sample set | USER | P0 |
 | 13 | Screens: S1 home, S2 intake (5 steps), S3 location picker | FE | P0 |
@@ -112,7 +112,7 @@ Whichever rung is used, the **Sample** chip and the footer stay on screen.
 | Money | medium |
 | Location | A pin inside the Sample set's 5 km radius |
 
-Expected result: nearby water, grazing and forest resources with mixed labels; **Dairy** and **Goat rearing** rank high (animals + fodder + water); **Mushroom** appears as a low-risk option; community ideas (fish pond, MFP) show **"through the Gram Sabha"**; wildlife flag shows on forest-based ideas if the protected layer is within range.
+Expected result: nearby water, grazing and forest resources with mixed labels; **Dairy** and **Goat rearing** rank high (animals + fodder + water); **Mushroom** appears as a low-risk option; community ideas (fish pond, MFP) show **"through the Gram Sabha"**; every idea shows "Ask the Forest Department first" only when a protected layer is within 2 km (not in the default demo; move the pin about 1 km north-north-east to show it).
 
 ---
 

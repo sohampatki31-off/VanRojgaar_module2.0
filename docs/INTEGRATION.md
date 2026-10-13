@@ -67,7 +67,7 @@ vanmitra_backend/tests/livelihood/
    (the livelihood router declares `prefix="/livelihood"`).
 2. **`app/mongo.py` → `INDEXES`**: merge the `lv_*` entries from [BACKEND_PLAN](BACKEND_PLAN.md) §2.2. Then **a person** runs `python -m scripts.setup_mongo`.
 3. **`app/models/__init__.py`**: **do not** re-export `lv_*` models; import them from `app.livelihood.models` (avoids touching the host's model index and keeps the merge a copy).
-4. **`app/config.py`** *(optional)*: `livelihood_default_radius_m = 5000`, `livelihood_max_radius_m = 10000`, `livelihood_candidate_margin_m = 1500`. Env prefix `VANMITRA_` as elsewhere. Defaults in code are fine for M0.
+4. **`app/config.py`** *(optional)*: `livelihood_default_radius_m = 5000`, `livelihood_max_radius_m = 10000`, `livelihood_demo_endpoints = False` (the slice-1 demo routes must be off in production). Env prefix `VANMITRA_` as elsewhere. Defaults in code are fine for M0.
 5. Nothing else. No change to auth, roles, claims, cases, or boundary code. **The module is read-only on legal records (L9).**
 
 ### Flutter
