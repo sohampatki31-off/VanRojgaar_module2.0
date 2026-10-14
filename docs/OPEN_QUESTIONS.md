@@ -29,7 +29,7 @@
 | Q7 | Show the draft idea list to villagers while it is **not expert-reviewed**? Show gate-removed ideas in "Why not others?" | Yes for the demo, clearly **draft/prototype**, footer on. Show lease and timber in "Why not others?"; **never** show the hunting/trapping entry | ◐ |
 | Q8 | Languages for tomorrow | **Marathi + English**; Hindi if time. Konkani (`kn`) out of scope for this module | ◐ |
 | Q9 | CFR status of the village (Module 2) | Not available; header shows none. A not-yet-CFR village still gets the report in M0 (PDF says it stops at step 2 with a claim-help link: build when Module 2 exists) | ◐ |
-| Q13 | Proposed numbers the PDF does not give: **fit label bands** (≥ 0.70 Good, 0.40–0.69 Fair, < 0.40 Weak), **R bands by distance** (1/3/5 km → 1.0/0.7/0.4), protected-area "near" = 2 km, flood "near" = 300 m, candidate margin 1.5 km | As written in [BACKEND_PLAN](BACKEND_PLAN.md) §5; stored in `lv_config`, tunable | ◐ |
+| Q13 | Proposed numbers the PDF does not give: **fit label bands** (≥ 0.70 Good, 0.40–0.69 Fair, < 0.40 Weak), **R bands by distance** (1/3/5 km → 1.0/0.7/0.4), protected-area "near" = 2 km, flood "near" = 300 m, "hot" month = 40 °C, "told-by-you" resource strength 0.8 | As written in [BACKEND_PLAN](BACKEND_PLAN.md) §5; stored in `lv_config`, tunable | ◐ |
 | Q14 | Livestock analysis depth | **Facts only** ("fodder and water within 5 km: yes/no, distance"). No computed feed needs until an agriculture expert supplies numbers | ◐ |
 | Q15 | Land-area unit handling | Hectare / acre / guntha, stored in hectares; show the conversion back | ◐ |
 | Q16 | Colours | Use host `AppColors` tokens (code beats the style-guide doc's hex values). Status colours carry meaning only | ◐ |

@@ -122,12 +122,14 @@ Goal: **every resource within `radius_m` (default 5000) of the centre point, wit
 
 1. **Centre point** (`geo.centre_for(profile, village)`):
    `profile.location.point` (source `gps`/`manual`) → else `lv_village_geo.centroid` (source `village_centre`) → else error `livelihood.no_location`. The report records which one was used so the header can say *"measured from your plot"* or *"from your village centre"*.
-2. **Candidate search (Mongo):** `$geoNear` on `lv_resource.centroid` with `maxDistance = radius_m + CANDIDATE_MARGIN_M` (default margin **1500 m**, to catch large polygons whose centroid is further than their edge), `spherical: true`, `query: {status: "active"}`, plus optional `district`/`kind` filters. Index: `centroid_2dsphere`.
+2. **Candidate search (Mongo):** `$geoIntersects` on `lv_resource.geom` with a **circle polygon** around the centre (`geo.circle_polygon`, a 64-sided polygon **circumscribed** around the true circle so it never loses a resource), plus `{status: "active", sensitive: false}` and optional `district`/`kind` filters. Index: `geom_2dsphere`. *(Built and tested in slice 1 as `circle_polygon`; the Mongo call itself arrives in slice 2.)* A centroid-radius search with a fixed margin was rejected: a large polygon's centroid can be far further than its nearest edge (the sample set has one: edge 4.1 km, centroid 6.6 km).
 3. **Exact distance (Python):** for each candidate, distance from the centre to the **nearest point of its geometry** (point, line or polygon edge; **0 m if the centre is inside a polygon**). Compute in a **local azimuthal-equidistant projection centred on the plot** (pyproj `Proj(proj="aeqd", lat_0=…, lon_0=…)`). This is accurate anywhere in Maharashtra and avoids picking a UTM zone (Vidarbha lies in zone 44, the west in zone 43). Keep only `distance_m ≤ radius_m`.
 4. **Tag** each as `inside_cfr` (centre or resource lies within a `lv_village_geo.cfr_polygons` polygon, or `tag_hint == cfr`), `inside_village` (within `lv_village_geo.boundary`), else `near`.
 5. **Sort** by distance; **label** each (§5.1); return.
 
-> **Why not trust `$geoNear` distance for polygons:** MongoDB's distance for non-point GeoJSON is not guaranteed to be edge distance, so it is only used to **find candidates**. The exact distance is computed in step 3.
+> **Why the exact distance is computed in Python:** MongoDB's distance for non-point GeoJSON is not guaranteed to be edge distance, so the database only **finds candidates**. The exact distance is computed in step 3 (`geo.distance_to_geometry_m`, tested at 4,999 m / 5,001 m).
+> **Protected-area layers** (`wildlife_compartment`, `conservation_reserve`) are found by the same query but are **not listed** as resources: they feed only the wildlife check ("Ask the Forest Department first" when within `PROTECTED_NEAR_M`, 2 km). **Community resources** (`inside_cfr`) **do** count towards an idea but flag it "Use only through the Gram Sabha" (rule L3); they are never excluded, because dairy and goat ideas depend on CFR-approved grazing land.
+> **Ranking order** (built in slice 1): with details given, ideas that build on his own work (past work, animals) come first, best fit first, and a *Weak* fit never jumps the queue; with no details it is one list by fit. Ideas that pass the gates but miss the top five appear in "Why not others?" as **held back** (`gate: null`).
 > **Nagpur trap (PDF §14):** Vidarbha districts 08–13 (incl. Nagpur 09) have portal map data shifted ~6° west of the true position. The earlier prototype corrects this; **keep that correction in the loader**, not in the query. See [DATA_PLAN](DATA_PLAN.md) §5.
 > **Google satellite tiles are never cached or served offline** (L11).
 
@@ -313,7 +315,7 @@ A structured summary built **by code from facts**, no free-form AI in M0:
 |---|---|---|
 | Unit | `pytest` (+ `hypothesis` for the formulas) | `domain/`: unit conversion, `U`, bands, gates, `F`, fit label, wildlife flag, analysis keys. **Aim for full branch coverage of `domain/`** |
 | Geo | `pytest` + Shapely | distance to point/line/polygon edge; centre inside polygon → 0; tag selection |
-| DB | `pytest -m db` against a **throwaway** Mongo DB (`VANMITRA_TEST_MONGODB_URI`) | `$geoNear` candidate search, profile CRUD, owner-only access |
+| DB | `pytest -m db` against a **throwaway** Mongo DB (`VANMITRA_TEST_MONGODB_URI`) | `$geoIntersects` candidate search, profile CRUD, owner-only access |
 | Contract | OpenAPI at `/docs` | The report shape in §6 stays in step with the app |
 | Safety (Phase 5) | fixed list | Zero shown ideas that break a gate; every idea has a wildlife-risk badge |
 
@@ -323,15 +325,27 @@ Host checks: `ruff check`, `ruff format --check`, `mypy app scripts`, `pytest -q
 
 ## 10. Backend checklists
 
-**M0**
-- [ ] `models.py`, `schemas.py`, `domain/*` with tests
-- [ ] `lv_*` indexes added to `INDEXES` (user runs `setup_mongo.py`)
-- [ ] `PUT/GET/DELETE /profile`
-- [ ] `centre_for`, `$geoNear` + exact distance, tags
-- [ ] `labels.py`, `gates.py`, `fit.py`, `analysis.py`
-- [ ] `POST /report`, `GET /report/latest`, `POST /resources/nearby`
-- [ ] `seed_livelihood.py` + resource loader + a **sample** dataset (labelled)
-- [ ] Router registered in `api/v1/__init__.py`
+**Slice 1: done (branch `backend`)** — 60 tests, ruff + strict mypy clean, no database
+- [x] Scaffold (FastAPI, config, host-style errors), `/api/v1/health`
+- [x] `schemas.py` (the report contract) and `domain/*` (`units`, `config`, `labels`, `gates`, `fit`, `wildlife`, `analysis`)
+- [x] `geo.py`: centre, exact distance (point / line / polygon edge), tags, circle polygon
+- [x] `service.build_report()` (pure: profile + records in, report out)
+- [x] Draft idea library (13 + 3 gate demos), generated **Sample** dataset (12 features), demo village, sample weather
+- [x] Stateless demo routes: `GET /livelihood/meta`, `POST /livelihood/demo/report` (no login, no database; switch `VANMITRA_LIVELIHOOD_DEMO_ENDPOINTS`)
+
+**Modules 2 and 3: done in code (branch `backend`)** — 141 tests; the Mongo implementation is **not yet run against a real database**
+- [x] Host-compatible JWT auth with an overridable `UserDirectory` (`app/livelihood/auth.py`); `villager` and `gram_sabha` only; the user and his village come from the login, never the request
+- [x] `LivelihoodStore` interface with an in-memory implementation (dev and tests) and a `MongoStore` (`mongo_store.py`)
+- [x] `PUT/GET/DELETE /profile` (owner-only; replace, never merge; delete also removes his reports)
+- [x] `POST /report`, `GET /report/latest` (flags `newer_version_available`), `POST /resources/nearby`; an empty database is a 503, never an empty report
+- [x] `$geoIntersects` candidate query (`candidate_query`) + exact distance; only the newest version of each dataset is served
+- [x] Safety fix: the wildlife and flood checks look beyond a small report radius
+- [x] `loader.py` dataset validator (strict: swapped coordinates, bad geometry, silly attributes are refused with a reason); `load_livelihood_resources.py`, `seed_livelihood.py`, `setup_livelihood_indexes.py`, `smoke_mongo.py` (all dry-run by default; **`[USER RUNS]`**)
+
+**Next (needs a person with database access)**
+- [ ] Run `setup_livelihood_indexes.py --apply`, `seed_livelihood.py --apply`, then `smoke_mongo.py --apply` against a throwaway `*_test` database
+- [ ] Load a real or sample resource file with `load_livelihood_resources.py` (validate first)
+- [ ] Wire the host `Store` and the host user lookup (replace `get_directory`) at merge; register the router in the host `api/v1/__init__.py`
 
 **Later**
 - [ ] `/ideas/{code}`, `/meta`

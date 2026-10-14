@@ -29,12 +29,12 @@ Module 4 of VanMitra: a personal **livelihood report** for one landowner (land, 
 ## Conventions
 - Domain rules are **pure functions** in `domain/` (no DB, no HTTP) with unit tests; DB tests only against a throwaway database.
 - Weights, bands, radius live in config (`domain/config.py` / `lv_config`), not scattered constants.
-- Radius default **5000 m**, server cap 10000 m. Exact distance computed in a local azimuthal-equidistant projection; `$geoNear` only finds candidates.
+- Radius default **5000 m**, server cap 10000 m. Exact distance computed in a local azimuthal-equidistant projection; the database only finds candidates (`$geoIntersects` with a circumscribed circle polygon).
 - Commands: Flutter `flutter analyze`, `flutter test`; backend `ruff check`, `ruff format --check`, `mypy app scripts`, `pytest -q`.
 
 ## Working prompt (how to run a session here)
 
-> You are building VanMitra Module 4. Work branch by branch: **`backend`** → **`frontend`** → **`integration`**. Finish **one slice of backend** (tests green), commit and push it, then build **the matching slice of frontend** against the same report contract (`docs/BACKEND_PLAN.md` §6), commit and push, then **stop and report**. Never push to `main`; never merge `integration` without being asked. Before each slice, re-read the rules above and `docs/OPEN_QUESTIONS.md`. Use the skills below at the step named; skip a skill that does not fit the stack and say why.
+> You are building VanMitra Module 4. Work branch by branch: **`backend`** → **`frontend`** → **`integration`**. Finish **one slice of backend** (tests green), commit and push it, then build **the matching slice of frontend** against the same report contract (`docs/BACKEND_PLAN.md` §6), commit and push, then **stop and report**. Do not push to `main` (it holds only the planning docs; the initial docs commit was the one exception); never merge `integration` without being asked. Before each slice, re-read the rules above and `docs/OPEN_QUESTIONS.md`. Use the skills below at the step named; skip a skill that does not fit the stack and say why.
 
 | Step | Skill | Use it for |
 |---|---|---|
