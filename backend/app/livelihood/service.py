@@ -16,7 +16,7 @@ from .domain.fit import IdeaEval, LabelledResource, evaluate_idea, idea_reason
 from .domain.gates import failed_gate
 from .domain.labels import label_resource
 from .domain.wildlife import wildlife_risk
-from .geo import centre_for, centre_inside_cfr, find_nearby
+from .geo import CentrePoint, Nearby, centre_for, centre_inside_cfr, find_nearby
 from .schemas import (
     FLOOD_KINDS,
     PROTECTED_KINDS,
@@ -81,6 +81,83 @@ def _group(ev: IdeaEval, profile: ProfileIn | None) -> IdeaGroup:
     return IdeaGroup.OTHER_OPTIONS
 
 
+def label_nearby(
+    nearby: Sequence[Nearby], cfg: LivelihoodConfig = DEFAULT_CONFIG, within_m: float | None = None
+) -> list[LabelledResource]:
+    """Label what is near. Protected-area layers are never listed (they feed only the wildlife
+    check), and nothing beyond `within_m` is listed."""
+    return [
+        LabelledResource(n, label_resource(n.record.kind, n.record.attrs, n.distance_m, cfg))
+        for n in nearby
+        if n.record.kind not in PROTECTED_KINDS and (within_m is None or n.distance_m <= within_m)
+    ]
+
+
+def resource_card(r: LabelledResource) -> ResourceOut:
+    """One resource as the app shows it: a label and a reason, never a number (rule L5)."""
+    record = r.near.record
+    return ResourceOut(
+        id=r.id,
+        kind=record.kind,
+        name_mr=record.name_mr,
+        name_en=record.name_en,
+        distance_m=round(r.near.distance_m),
+        tag=r.near.tag,
+        label=r.label.label,
+        reason=r.label.reason,
+        checked_on_ground=record.check_status == "confirmed",
+        unknown_checks=r.label.unknown_checks,
+        use_only_through_gram_sabha=r.near.tag.value == "inside_cfr",
+        trust=TrustLabel(
+            source=record.source,
+            source_date=record.source_date,
+            check_status=record.check_status,
+            confidence=record.confidence,
+        ),
+    )
+
+
+def count_labels(listed: Sequence[LabelledResource]) -> Counts:
+    return Counts(
+        useful=sum(r.label.label is Label.USEFUL for r in listed),
+        partly_useful=sum(r.label.label is Label.PARTLY_USEFUL for r in listed),
+        not_useful=sum(r.label.label is Label.NOT_USEFUL for r in listed),
+        total=len(listed),
+    )
+
+
+def resolve_search(
+    profile: ProfileIn | None,
+    village: VillageGeo,
+    radius_m: int | None,
+    cfg: LivelihoodConfig = DEFAULT_CONFIG,
+) -> tuple[CentrePoint, int]:
+    """
+    The centre and radius a report or a nearby search uses, with the rules applied: the radius is
+    positive and under the cap, and a pinned plot must be inside Maharashtra. Shared by
+    `build_report` and the routes, so the database is queried with exactly what the report uses.
+    """
+    radius = radius_m if radius_m is not None else cfg.default_radius_m
+    if radius <= 0:
+        raise ApiError(422, "INVALID_RADIUS", "livelihood.invalid_radius")
+    if radius > cfg.max_radius_m:
+        raise ApiError(
+            422, "RADIUS_TOO_LARGE", "livelihood.radius_too_large", {"max_m": cfg.max_radius_m}
+        )
+    try:
+        centre = centre_for(profile.location if profile else None, village)
+    except ValueError as exc:
+        raise ApiError(
+            422, "LOCATION_OUTSIDE_MAHARASHTRA", "livelihood.location_outside_maharashtra"
+        ) from exc
+    return centre, radius
+
+
+def search_radius(radius: int, cfg: LivelihoodConfig = DEFAULT_CONFIG) -> int:
+    """How far to look for resources: the listed radius, or further for the safety checks."""
+    return max(radius, cfg.protected_near_m, cfg.flood_near_m)
+
+
 def build_report(
     *,
     profile: ProfileIn | None,
@@ -95,31 +172,16 @@ def build_report(
     report_id: str | None = None,
     now: datetime | None = None,
 ) -> ReportOut:
-    radius = radius_m if radius_m is not None else cfg.default_radius_m
-    if radius <= 0:
-        raise ApiError(422, "INVALID_RADIUS", "livelihood.invalid_radius")
-    if radius > cfg.max_radius_m:
-        raise ApiError(
-            422, "RADIUS_TOO_LARGE", "livelihood.radius_too_large", {"max_m": cfg.max_radius_m}
-        )
-
-    try:
-        centre = centre_for(profile.location if profile else None, village)
-    except ValueError as exc:
-        raise ApiError(
-            422, "LOCATION_OUTSIDE_MAHARASHTRA", "livelihood.location_outside_maharashtra"
-        ) from exc
+    centre, radius = resolve_search(profile, village, radius_m, cfg)
     level = (
         ReportLevel.VILLAGE if centre.source is LocationSource.VILLAGE_CENTRE else ReportLevel.PLOT
     )
 
-    nearby = find_nearby(resources, centre, radius, village)
+    # The wildlife and flood checks look further than the listed radius: a 1 km report next to a
+    # protected area 1.5 km away must still say "Ask the Forest Department first".
+    nearby = find_nearby(resources, centre, search_radius(radius, cfg), village)
     protected = [n for n in nearby if n.record.kind in PROTECTED_KINDS]
-    listed = [
-        LabelledResource(n, label_resource(n.record.kind, n.record.attrs, n.distance_m, cfg))
-        for n in nearby
-        if n.record.kind not in PROTECTED_KINDS  # protected layers feed the wildlife check only
-    ]
+    listed = label_nearby(nearby, cfg, within_m=radius)
 
     protected_close = [n for n in protected if n.distance_m <= cfg.protected_near_m]
     protected_near = bool(protected_close)
@@ -200,34 +262,8 @@ def build_report(
         for i, ev in enumerate(top, start=1)
     ]
 
-    resource_cards = [
-        ResourceOut(
-            id=r.id,
-            kind=r.near.record.kind,
-            name_mr=r.near.record.name_mr,
-            name_en=r.near.record.name_en,
-            distance_m=round(r.near.distance_m),
-            tag=r.near.tag,
-            label=r.label.label,
-            reason=r.label.reason,
-            checked_on_ground=r.near.record.check_status == "confirmed",
-            unknown_checks=r.label.unknown_checks,
-            use_only_through_gram_sabha=r.near.tag.value == "inside_cfr",
-            trust=TrustLabel(
-                source=r.near.record.source,
-                source_date=r.near.record.source_date,
-                check_status=r.near.record.check_status,
-                confidence=r.near.record.confidence,
-            ),
-        )
-        for r in listed
-    ]
-    counts = Counts(
-        useful=sum(r.label.label is Label.USEFUL for r in listed),
-        partly_useful=sum(r.label.label is Label.PARTLY_USEFUL for r in listed),
-        not_useful=sum(r.label.label is Label.NOT_USEFUL for r in listed),
-        total=len(listed),
-    )
+    resource_cards = [resource_card(r) for r in listed]
+    counts = count_labels(listed)
 
     is_sample = (
         dataset.is_sample or village.is_sample or any(r.near.record.is_sample for r in listed)

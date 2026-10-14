@@ -230,6 +230,16 @@ class ProfileIn(BaseModel):
         )
 
 
+class NearbyOut(BaseModel):
+    """Answer to "what is near this point": labelled resources only, no ideas."""
+
+    centre: "Centre"
+    radius_m: int
+    resources: list["ResourceOut"]
+    counts: "Counts"
+    is_sample_data: bool
+
+
 class ProfileOut(BaseModel):
     """A saved profile as the app sees it. `area_ha` is the converted land area."""
 

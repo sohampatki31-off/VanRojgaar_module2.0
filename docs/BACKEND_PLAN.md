@@ -333,13 +333,19 @@ Host checks: `ruff check`, `ruff format --check`, `mypy app scripts`, `pytest -q
 - [x] Draft idea library (13 + 3 gate demos), generated **Sample** dataset (12 features), demo village, sample weather
 - [x] Stateless demo routes: `GET /livelihood/meta`, `POST /livelihood/demo/report` (no login, no database; switch `VANMITRA_LIVELIHOOD_DEMO_ENDPOINTS`)
 
-**Slice 2: next (needs a database and the host auth)** — a person runs the DB steps
-- [ ] `models.py` (`lv_*` documents) and the host `Store` / auth wiring; `lv_*` indexes added to `INDEXES` (user runs `setup_mongo.py`)
-- [ ] `PUT/GET/DELETE /profile` (owner-only)
-- [ ] `$geoIntersects` candidate query replacing the in-memory list
-- [ ] `POST /report`, `GET /report/latest`, `POST /resources/nearby`
-- [ ] `seed_livelihood.py` + `load_livelihood_resources.py` (user runs, `--dry-run` first)
-- [ ] Router registered in the host `api/v1/__init__.py`
+**Modules 2 and 3: done in code (branch `backend`)** — 141 tests; the Mongo implementation is **not yet run against a real database**
+- [x] Host-compatible JWT auth with an overridable `UserDirectory` (`app/livelihood/auth.py`); `villager` and `gram_sabha` only; the user and his village come from the login, never the request
+- [x] `LivelihoodStore` interface with an in-memory implementation (dev and tests) and a `MongoStore` (`mongo_store.py`)
+- [x] `PUT/GET/DELETE /profile` (owner-only; replace, never merge; delete also removes his reports)
+- [x] `POST /report`, `GET /report/latest` (flags `newer_version_available`), `POST /resources/nearby`; an empty database is a 503, never an empty report
+- [x] `$geoIntersects` candidate query (`candidate_query`) + exact distance; only the newest version of each dataset is served
+- [x] Safety fix: the wildlife and flood checks look beyond a small report radius
+- [x] `loader.py` dataset validator (strict: swapped coordinates, bad geometry, silly attributes are refused with a reason); `load_livelihood_resources.py`, `seed_livelihood.py`, `setup_livelihood_indexes.py`, `smoke_mongo.py` (all dry-run by default; **`[USER RUNS]`**)
+
+**Next (needs a person with database access)**
+- [ ] Run `setup_livelihood_indexes.py --apply`, `seed_livelihood.py --apply`, then `smoke_mongo.py --apply` against a throwaway `*_test` database
+- [ ] Load a real or sample resource file with `load_livelihood_resources.py` (validate first)
+- [ ] Wire the host `Store` and the host user lookup (replace `get_directory`) at merge; register the router in the host `api/v1/__init__.py`
 
 **Later**
 - [ ] `/ideas/{code}`, `/meta`
