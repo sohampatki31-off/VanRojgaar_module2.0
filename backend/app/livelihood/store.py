@@ -19,11 +19,13 @@ from typing import Any, Protocol
 from pydantic import BaseModel, Field
 from shapely.geometry import shape
 
+from .ask_schemas import ChatTurn
 from .schemas import Idea, ProfileIn, ReportOut, ResourceRecord, VillageGeo
 from .seed import load_demo_village, load_ideas, load_sample_dataset
 from .service import DatasetMeta
 
 KEEP_REPORTS = 5  # the latest few per user; older ones are removed
+KEEP_CHAT = 50  # the latest questions and answers per user
 
 
 class StoredProfile(BaseModel):
@@ -61,6 +63,19 @@ class LivelihoodStore(Protocol):
         """Delete all his reports (done whenever he deletes his answers). Returns how many."""
         ...
 
+    # the Ask box history (personal: it holds what he typed)
+    def append_chat(self, user_id: str, turn: ChatTurn) -> None:
+        """Keep a question and its answer; only the latest KEEP_CHAT are retained."""
+        ...
+
+    def list_chat(self, user_id: str) -> list[ChatTurn]:
+        """His history, oldest first."""
+        ...
+
+    def delete_chat(self, user_id: str) -> int:
+        """Delete all his history (rule L8). Returns how many turns."""
+        ...
+
     # shared data
     def get_village(self, village_id: str) -> VillageGeo | None: ...
 
@@ -93,6 +108,7 @@ class InMemoryStore:
         self._lock = threading.Lock()
         self._profiles: dict[str, StoredProfile] = {}
         self._reports: dict[str, list[ReportOut]] = {}
+        self._chat: dict[str, list[ChatTurn]] = {}
         self._header, self._resources = load_sample_dataset()
 
     # profile
@@ -135,6 +151,19 @@ class InMemoryStore:
     def delete_reports(self, user_id: str) -> int:
         with self._lock:
             return len(self._reports.pop(user_id, []))
+
+    # the Ask box history
+    def append_chat(self, user_id: str, turn: ChatTurn) -> None:
+        with self._lock:
+            self._chat[user_id] = [*self._chat.get(user_id, []), turn][-KEEP_CHAT:]
+
+    def list_chat(self, user_id: str) -> list[ChatTurn]:
+        with self._lock:
+            return [t.model_copy(deep=True) for t in self._chat.get(user_id, [])]
+
+    def delete_chat(self, user_id: str) -> int:
+        with self._lock:
+            return len(self._chat.pop(user_id, []))
 
     # shared data
     def get_village(self, village_id: str) -> VillageGeo | None:

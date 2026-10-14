@@ -4,12 +4,13 @@ Livelihood routes, mounted at /api/v1/livelihood.
 Two groups:
 - the real routes, which need a login and work only on the signed-in user's OWN data:
   PUT/GET/DELETE /profile, POST /report, GET /report/latest, POST /resources/nearby
-  (docs/BACKEND_PLAN.md §3);
+  (docs/BACKEND_PLAN.md §3), and the Ask box: POST /ask, GET/DELETE /ask/history;
 - the stateless DEMO routes: they build a report from the bundled SAMPLE dataset, store nothing
   and need no login. Switched by VANMITRA_LIVELIHOOD_DEMO_ENDPOINTS; OFF wherever real data or
   real users are involved.
 """
 
+import re
 from dataclasses import replace
 from typing import Annotated, Any
 
@@ -19,7 +20,9 @@ from uuid6 import uuid7
 
 from ..config import get_settings
 from ..errors import ApiError
+from .ask_schemas import AnswerKind, AskHistoryOut, AskOut, AskRequest, ChatTurn
 from .deps import CurrentUser, get_store
+from .domain import ask_engine
 from .domain.config import DEFAULT_CONFIG, LivelihoodConfig
 from .domain.units import AreaUnit
 from .geo import circle_polygon, find_nearby, validate_point
@@ -124,6 +127,7 @@ def delete_profile(user: CurrentUser, store: Store) -> Response:
     # Reports first: if the second step fails, he still has his profile and simply retries. The
     # other order could leave a report holding his name after the profile was already gone.
     store.delete_reports(str(user.id))
+    store.delete_chat(str(user.id))  # what he asked came from his report: it goes with it
     store.delete_profile(str(user.id))
     return Response(status_code=204)
 
@@ -153,12 +157,11 @@ class ReportRequest(BaseModel):
     radius_m: int | None = None  # default 5000, capped at 10000
 
 
-@router.post("/report", response_model=ReportOut)
-def make_report(body: ReportRequest, user: CurrentUser, store: Store) -> ReportOut:
-    """
-    Build his report now from his saved details (or a general village report if he has saved none),
-    keep it as his latest, and return it.
-    """
+def _build_and_save_report(
+    user: UserInfo, store: LivelihoodStore, radius_m: int | None
+) -> ReportOut:
+    """Build his report now from his saved details (a general village report if he has saved
+    none), keep it as his latest, and return it."""
     cfg = _settings_config()
     village = _village_of(user, store)
     stored = store.get_profile(str(user.id))
@@ -170,7 +173,7 @@ def make_report(body: ReportRequest, user: CurrentUser, store: Store) -> ReportO
         # an empty database must not look like "nothing is near you" (rule L1). Checked before
         # the request itself, so a missing-data problem is reported the same way every time.
         raise ApiError(503, "DATA_NOT_LOADED", "livelihood.data_not_loaded")
-    centre, radius = resolve_search(profile, village, body.radius_m, cfg)
+    centre, radius = resolve_search(profile, village, radius_m, cfg)
     candidates = store.resource_candidates(circle_polygon(centre, search_radius(radius, cfg)))
 
     report = build_report(
@@ -189,6 +192,12 @@ def make_report(body: ReportRequest, user: CurrentUser, store: Store) -> ReportO
     return report
 
 
+@router.post("/report", response_model=ReportOut)
+def make_report(body: ReportRequest, user: CurrentUser, store: Store) -> ReportOut:
+    """Build his report now from his saved details and return it (it becomes his latest)."""
+    return _build_and_save_report(user, store, body.radius_m)
+
+
 @router.get("/report/latest", response_model=ReportOut)
 def latest_report(user: CurrentUser, store: Store) -> ReportOut:
     """His latest report, as it was made. Says so if newer data has been loaded since."""
@@ -199,6 +208,83 @@ def latest_report(user: CurrentUser, store: Store) -> ReportOut:
     if dataset is not None and dataset.data_version != report.data_version:
         report = report.model_copy(update={"newer_version_available": True})
     return report
+
+
+_LONG_DIGITS = re.compile(r"[0-9०-९]{4,}")
+
+
+def _kept_question(question: str | None, kind: AnswerKind) -> str | None:
+    """What is saved of a typed question (rule L8). A refused question is not kept at all, and
+    long digit runs (a phone or ID number typed by mistake) are masked in the rest."""
+    if question is None or kind is AnswerKind.REFUSED_HARMFUL:
+        return None
+    return _LONG_DIGITS.sub("•••", question)
+
+
+def _current_report(user: UserInfo, store: LivelihoodStore) -> ReportOut:
+    """The report an answer is made from: his latest, unless it is out of date. It is out of date
+    if he changed his details after it was built, or newer data has been loaded since, so a
+    farmer who has just corrected his animals never gets an answer about the old ones."""
+    uid = str(user.id)
+    report = store.latest_report(uid)
+    if report is None:
+        return _build_and_save_report(user, store, None)
+    stored = store.get_profile(uid)
+    dataset = store.dataset_meta()
+    changed = stored is not None and stored.updated_at > report.generated_at
+    newer_data = dataset is not None and dataset.data_version != report.data_version
+    if changed or newer_data:
+        return _build_and_save_report(user, store, report.header.radius_m)
+    return report
+
+
+@router.post("/ask", response_model=AskOut)
+def ask(body: AskRequest, user: CurrentUser, store: Store) -> AskOut:
+    """
+    Ask about HIS report. The safety check runs first and in code; the answer comes only from his
+    own saved report (built now if he has none), and every number in it is checked against the
+    report (docs/to_do.md stage 2). Each question and answer is kept so he can see and delete them.
+    """
+    uid = str(user.id)
+    report = _current_report(user, store)
+    library = store.list_ideas()
+
+    if body.chip:
+        answer = ask_engine.respond_chip(body.chip, report, library)
+        if answer is None:
+            raise ApiError(422, "UNKNOWN_CHIP", "livelihood.unknown_chip")
+    else:
+        answer = ask_engine.respond(body.question or "", report, library)
+
+    turn = ChatTurn(
+        id=uuid7().hex,
+        question=_kept_question(body.question, answer.kind),
+        chip=body.chip,
+        lang=body.lang,
+        report_id=report.id,
+        answer=answer,
+    )
+    store.append_chat(uid, turn)
+    return AskOut(turn=turn, chips=ask_engine.build_chips(report))
+
+
+@router.get("/ask/history", response_model=AskHistoryOut)
+def ask_history(user: CurrentUser, store: Store) -> AskHistoryOut:
+    """His earlier questions and answers, and the suggestions for his report. Only his own."""
+    uid = str(user.id)
+    report = store.latest_report(uid)
+    return AskHistoryOut(
+        turns=store.list_chat(uid),
+        chips=ask_engine.build_chips(report) if report else [],
+        has_report=report is not None,
+    )
+
+
+@router.delete("/ask/history", status_code=204)
+def delete_ask_history(user: CurrentUser, store: Store) -> Response:
+    """Delete everything he asked and was answered (rule L8). Repeating it is fine."""
+    store.delete_chat(str(user.id))
+    return Response(status_code=204)
 
 
 class NearbyRequest(BaseModel):

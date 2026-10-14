@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'screens/add_details_screen.dart';
+import 'screens/ask_screen.dart';
 import 'screens/livelihood_home_screen.dart';
 import 'screens/policy_screen.dart';
 import 'screens/report_screen.dart';
@@ -17,6 +18,7 @@ class LivelihoodRoutes {
   static const String report = '/livelihood/report';
   static const String resources = '/livelihood/resources';
   static const String policy = '/livelihood/policy';
+  static const String ask = '/livelihood/ask';
 }
 
 final Map<String, WidgetBuilder> livelihoodRoutes = {
@@ -25,4 +27,5 @@ final Map<String, WidgetBuilder> livelihoodRoutes = {
   LivelihoodRoutes.report: (_) => const ReportScreen(),
   LivelihoodRoutes.resources: (_) => const ResourcesScreen(),
   LivelihoodRoutes.policy: (_) => const PolicyScreen(),
+  LivelihoodRoutes.ask: (_) => const AskScreen(),
 };

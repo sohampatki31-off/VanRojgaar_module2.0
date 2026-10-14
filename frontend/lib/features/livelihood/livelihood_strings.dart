@@ -300,6 +300,110 @@ const Map<String, Map<String, String>> _text = {
     'note.dataset_is_sample': 'This report uses sample data, not real surveys.',
     'note.no_resources_found': 'No resources were found near this point.',
     'note.fewer_than_five': 'Fewer than five ideas passed the checks.',
+    // Ask about your report
+    'ask.title': 'Ask about your report',
+    'ask.entry': 'Ask about your report',
+    'ask.entry_sub': 'Ask a question. Answers come only from your own report.',
+    'ask.intro':
+        'Ask a question about your own report. I can only answer from what is in it.',
+    'ask.hint': 'Type your question',
+    'ask.send': 'Send',
+    'ask.thinking': 'Looking in your report',
+    'ask.suggestions': 'You could ask',
+    'ask.clear': 'Clear my questions',
+    'ask.clear_title': 'Clear your questions?',
+    'ask.clear_body':
+        'This deletes the questions you asked and the answers. Your report stays. This cannot be undone.',
+    'ask.clear_confirm': 'Clear',
+    'ask.cleared': 'Your questions were cleared.',
+    'ask.from': 'From: {parts}',
+    'ask.part.summary': 'your summary',
+    'ask.part.ideas': 'your ideas',
+    'ask.part.resources': 'resources near you',
+    'ask.part.removed': 'ideas that were left out',
+    'ask.part.weather': 'weather',
+    'ask.part.your_details': 'what you told us',
+    'ask.sample_note': 'Based on sample data, not real surveys.',
+    'ask.question_not_kept': 'Question not kept',
+    'ask.refused_harmful':
+        'This is not allowed under our policy. VanMitra does not support any harm to wildlife.',
+    'ask.off_topic': 'I can only answer questions about your report.',
+    'ask.not_in_report':
+        'This is not in your report. Please ask the agriculture officer or the Forest Department.',
+    'ask.nir.outside':
+        'Prices, loans, insurance, crop problems and animal attacks are not part of your report.',
+    'ask.nir.schemes':
+        'Government schemes are not in your report yet. Ask the agriculture officer.',
+    'ask.nir.idea_unchecked':
+        'We have not checked this idea for your land. Ask an expert before you spend money on it.',
+    'ask.nir.idea_not_shown':
+        'This idea is not shown for you, so it is not in your report.',
+    'ask.nir.no_ideas':
+        'Your report has no ideas yet. Add your details to get ideas.',
+    'ask.top_ideas': 'Your top {count} ideas',
+    'ask.item.idea': '{rank}. {name}: {fit_text}',
+    'ask.idea.in_report': '{name} is number {rank} in your report: {fit_text}',
+    'ask.idea.removed_by_gate': '{name} was removed. {gate_text}',
+    'ask.idea.held_back':
+        '{name} was held back because other ideas fit you better.',
+    'ask.item.cost': '{cost_text}',
+    'ask.item.season': 'Best season: {season_text}',
+    'ask.item.wildlife': '{wildlife_text}',
+    'ask.item.idea_wildlife': '{name}: {wildlife_text}',
+    'ask.item.idea_cost': '{name}: {cost_text}',
+    'ask.item.idea_gram_sabha': '{name}: use only through the Gram Sabha',
+    'ask.item.removed': '{name}: {gate_text}',
+    'ask.item.held_back': '{name}: other ideas fit you better',
+    'ask.water.header': 'Water within {radius_km} km',
+    'ask.item.resource':
+        '{name}: {kind_text}, {distance_m_fmt} away, {label_text}',
+    'ask.resources.header':
+        '{total} resources within {radius_km} km: {useful} useful, {partly_useful} partly useful, {not_useful} not useful',
+    'ask.wildlife.near':
+        'A protected area is near your plot. Ask the Forest Department first.',
+    'ask.wildlife.none_found':
+        'No protected area was found near your plot in our data. This does not mean there is none. If unsure, ask the Forest Department.',
+    'ask.flood.possible': 'Your plot may be at risk of flooding.',
+    'ask.flood.none_found':
+        'No flood risk was found in our data. This does not mean there is none.',
+    'ask.weather.header':
+        'Typical weather in your area, from past years. Not a forecast.',
+    'ask.weather.hottest': 'Hottest month: {month_name}, about {tmax_c} °C',
+    'ask.weather.wettest':
+        'Wettest month: {month_name}, about {rain_mm} mm of rain',
+    'ask.weather.driest':
+        'Driest month: {month_name}, about {rain_mm} mm of rain',
+    'ask.cost.header': 'What your top ideas cost to start',
+    'ask.forest.header': 'Forest near you',
+    'ask.forest.none_found':
+        'No forest was found near you in our data. This does not mean there is none.',
+    'ask.own.header': 'What you told us',
+    'ask.own.none':
+        'You have not told us about your land, animals or what you own yet. Add your details to see them here.',
+    'ask.removed.header': '{count} ideas are not in your top list',
+    'ask.removed.none': 'No ideas were left out of your report.',
+    'ask.chip.heading': 'Where am I heading?',
+    'ask.chip.top_ideas': 'What are my best ideas?',
+    'ask.chip.idea': 'Tell me about {name}',
+    'ask.chip.water': 'Is there water near me?',
+    'ask.chip.wildlife': 'Is a protected area near me?',
+    'ask.chip.cost': 'What will my ideas cost?',
+    'ask.chip.forest': 'What about the forest near me?',
+    'ask.chip.own': 'What did I tell you?',
+    'ask.chip.weather': 'How is the weather?',
+    'ask.chip.removed': 'Why were other ideas left out?',
+    'm_1': 'January',
+    'm_2': 'February',
+    'm_3': 'March',
+    'm_4': 'April',
+    'm_5': 'May',
+    'm_6': 'June',
+    'm_7': 'July',
+    'm_8': 'August',
+    'm_9': 'September',
+    'm_10': 'October',
+    'm_11': 'November',
+    'm_12': 'December',
   },
   'mr': {
     'lv_title': 'माझा रोजगार अहवाल',
@@ -577,6 +681,114 @@ const Map<String, Map<String, String>> _text = {
         'हा अहवाल नमुना माहितीवर आधारित आहे, खऱ्या सर्वेक्षणावर नाही.',
     'note.no_resources_found': 'या ठिकाणाजवळ साधने आढळली नाहीत.',
     'note.fewer_than_five': 'पाचपेक्षा कमी कल्पना तपासण्यांमधून पुढे आल्या.',
+    // Ask about your report (machine draft: needs a native-speaker review)
+    'ask.title': 'तुमच्या अहवालाबद्दल विचारा',
+    'ask.entry': 'तुमच्या अहवालाबद्दल विचारा',
+    'ask.entry_sub':
+        'प्रश्न विचारा. उत्तरे फक्त तुमच्या स्वतःच्या अहवालातून मिळतात.',
+    'ask.intro':
+        'तुमच्या स्वतःच्या अहवालाबद्दल प्रश्न विचारा. मी फक्त त्यात असलेल्या माहितीवरून उत्तर देऊ शकतो.',
+    'ask.hint': 'तुमचा प्रश्न लिहा',
+    'ask.send': 'पाठवा',
+    'ask.thinking': 'तुमच्या अहवालात पाहत आहे',
+    'ask.suggestions': 'तुम्ही हे विचारू शकता',
+    'ask.clear': 'माझे प्रश्न हटवा',
+    'ask.clear_title': 'तुमचे प्रश्न हटवायचे?',
+    'ask.clear_body':
+        'तुम्ही विचारलेले प्रश्न आणि त्यांची उत्तरे हटवली जातील. तुमचा अहवाल राहील. हे परत करता येणार नाही.',
+    'ask.clear_confirm': 'हटवा',
+    'ask.cleared': 'तुमचे प्रश्न हटवले आहेत.',
+    'ask.from': 'स्रोत: {parts}',
+    'ask.part.summary': 'तुमचा सारांश',
+    'ask.part.ideas': 'तुमच्या कल्पना',
+    'ask.part.resources': 'तुमच्या जवळची साधने',
+    'ask.part.removed': 'वगळलेल्या कल्पना',
+    'ask.part.weather': 'हवामान',
+    'ask.part.your_details': 'तुम्ही सांगितलेली माहिती',
+    'ask.sample_note': 'नमुना माहितीवर आधारित, खऱ्या सर्वेक्षणावर नाही.',
+    'ask.question_not_kept': 'प्रश्न जतन केलेला नाही',
+    'ask.refused_harmful':
+        'आमच्या धोरणानुसार हे चालत नाही. वनमित्र वन्यजीवांना कोणत्याही प्रकारे इजा करण्यास पाठिंबा देत नाही.',
+    'ask.off_topic':
+        'मी फक्त तुमच्या अहवालाबद्दलच्या प्रश्नांची उत्तरे देऊ शकतो.',
+    'ask.not_in_report':
+        'हे तुमच्या अहवालात नाही. कृपया कृषी अधिकारी किंवा वन विभागाला विचारा.',
+    'ask.nir.outside':
+        'बाजारभाव, कर्ज, विमा, पिकांचे प्रश्न आणि प्राण्यांचे हल्ले तुमच्या अहवालात येत नाहीत.',
+    'ask.nir.schemes':
+        'सरकारी योजना अजून तुमच्या अहवालात नाहीत. कृषी अधिकाऱ्यांना विचारा.',
+    'ask.nir.idea_unchecked':
+        'ही कल्पना तुमच्या जमिनीसाठी तपासलेली नाही. पैसे गुंतवण्यापूर्वी तज्ज्ञांना विचारा.',
+    'ask.nir.idea_not_shown':
+        'ही कल्पना तुमच्यासाठी दाखवलेली नाही, म्हणून ती तुमच्या अहवालात नाही.',
+    'ask.nir.no_ideas':
+        'तुमच्या अहवालात अजून कल्पना नाहीत. कल्पनांसाठी तुमची माहिती भरा.',
+    'ask.top_ideas': 'तुमच्या पहिल्या {count} कल्पना',
+    'ask.item.idea': '{rank}. {name}: {fit_text}',
+    'ask.idea.in_report':
+        '{name} तुमच्या अहवालात क्रमांक {rank} वर आहे: {fit_text}',
+    'ask.idea.removed_by_gate': '{name} वगळले आहे. {gate_text}',
+    'ask.idea.held_back':
+        '{name} मागे ठेवले आहे, कारण इतर कल्पना तुम्हाला जास्त जुळतात.',
+    'ask.item.cost': '{cost_text}',
+    'ask.item.season': 'सर्वोत्तम हंगाम: {season_text}',
+    'ask.item.wildlife': '{wildlife_text}',
+    'ask.item.idea_wildlife': '{name}: {wildlife_text}',
+    'ask.item.idea_cost': '{name}: {cost_text}',
+    'ask.item.idea_gram_sabha': '{name}: फक्त ग्रामसभेमार्फत वापरा',
+    'ask.item.removed': '{name}: {gate_text}',
+    'ask.item.held_back': '{name}: इतर कल्पना तुम्हाला जास्त जुळतात',
+    'ask.water.header': '{radius_km} किमी मधील पाणी',
+    'ask.item.resource':
+        '{name}: {kind_text}, {distance_m_fmt} अंतरावर, {label_text}',
+    'ask.resources.header':
+        '{radius_km} किमी मध्ये {total} साधने: {useful} उपयुक्त, {partly_useful} अंशतः उपयुक्त, {not_useful} उपयुक्त नाही',
+    'ask.wildlife.near':
+        'तुमच्या जमिनीजवळ संरक्षित क्षेत्र आहे. आधी वन विभागाला विचारा.',
+    'ask.wildlife.none_found':
+        'आमच्या माहितीत तुमच्या जमिनीजवळ संरक्षित क्षेत्र आढळले नाही. याचा अर्थ ते नाही असा नाही. शंका असल्यास वन विभागाला विचारा.',
+    'ask.flood.possible': 'तुमच्या जमिनीला पुराचा धोका असू शकतो.',
+    'ask.flood.none_found':
+        'आमच्या माहितीत पुराचा धोका आढळला नाही. याचा अर्थ तो नाही असा नाही.',
+    'ask.weather.header':
+        'तुमच्या भागातील सर्वसाधारण हवामान, मागील वर्षांवरून. हा अंदाज नाही.',
+    'ask.weather.hottest':
+        'सर्वात उष्ण महिना: {month_name}, सुमारे {tmax_c} °C',
+    'ask.weather.wettest':
+        'सर्वात जास्त पावसाचा महिना: {month_name}, सुमारे {rain_mm} मिमी पाऊस',
+    'ask.weather.driest':
+        'सर्वात कमी पावसाचा महिना: {month_name}, सुमारे {rain_mm} मिमी पाऊस',
+    'ask.cost.header': 'तुमच्या पहिल्या कल्पना सुरू करण्याचा खर्च',
+    'ask.forest.header': 'तुमच्या जवळचे जंगल',
+    'ask.forest.none_found':
+        'आमच्या माहितीत तुमच्या जवळ जंगल आढळले नाही. याचा अर्थ ते नाही असा नाही.',
+    'ask.own.header': 'तुम्ही सांगितलेली माहिती',
+    'ask.own.none':
+        'तुम्ही अजून जमीन, प्राणी किंवा तुमच्याकडे काय आहे ते सांगितलेले नाही. ते येथे दिसण्यासाठी माहिती भरा.',
+    'ask.removed.header': '{count} कल्पना तुमच्या पहिल्या यादीत नाहीत',
+    'ask.removed.none': 'तुमच्या अहवालातून कोणत्याही कल्पना वगळलेल्या नाहीत.',
+    'ask.chip.heading': 'मी कोणत्या दिशेने जात आहे?',
+    'ask.chip.top_ideas': 'माझ्या सर्वोत्तम कल्पना कोणत्या?',
+    'ask.chip.idea': '{name} बद्दल सांगा',
+    'ask.chip.water': 'माझ्या जवळ पाणी आहे का?',
+    'ask.chip.wildlife': 'माझ्या जवळ संरक्षित क्षेत्र आहे का?',
+    'ask.chip.cost': 'माझ्या कल्पनांना किती खर्च येईल?',
+    'ask.chip.forest': 'माझ्या जवळच्या जंगलाचे काय?',
+    'ask.chip.own': 'मी तुम्हाला काय सांगितले होते?',
+    'ask.chip.weather': 'हवामान कसे आहे?',
+    'ask.chip.removed': 'इतर कल्पना का वगळल्या?',
+    'm_1': 'जानेवारी',
+    'm_2': 'फेब्रुवारी',
+    'm_3': 'मार्च',
+    'm_4': 'एप्रिल',
+    'm_5': 'मे',
+    'm_6': 'जून',
+    'm_7': 'जुलै',
+    'm_8': 'ऑगस्ट',
+    'm_9': 'सप्टेंबर',
+    'm_10': 'ऑक्टोबर',
+    'm_11': 'नोव्हेंबर',
+    'm_12': 'डिसेंबर',
   },
 };
 
@@ -640,6 +852,7 @@ class LivelihoodStrings {
       params['radius_km'] = km(params['radius_m'] as num);
     }
     if (params['need'] != null) params['need'] = _need(params['need']);
+    _askParams(params);
 
     var key = r.key;
     if (key == 'analysis.you_have_animals') {
@@ -654,7 +867,38 @@ class LivelihoodStrings {
         r.params['gram_sabha_only'] == true) {
       key = 'analysis.forest_nearby_gs';
     }
+    if (key == 'ask.item.removed' && r.params['gate'] == null) {
+      key =
+          'ask.item.held_back'; // held back for a lower fit, not removed by a law
+    }
     return t(key, params);
+  }
+
+  /// The facts an Ask answer carries as codes (names, fit, cost ...) written in this language.
+  void _askParams(Map<String, Object?> params) {
+    final nameEn = params['name_en'];
+    final nameMr = params['name_mr'];
+    if (nameEn != null || nameMr != null) {
+      final preferred = lang == 'mr' ? nameMr : nameEn;
+      params['name'] = (preferred ?? nameEn ?? nameMr).toString();
+    }
+    String? lookup(String prefix, Object? code) =>
+        code == null ? null : t('$prefix$code');
+    final fit = lookup('lv_fit_', params['fit']);
+    if (fit != null) params['fit_text'] = fit;
+    final cost = lookup('lv_cost_', params['cost_level']);
+    if (cost != null) params['cost_text'] = cost;
+    final wildlife = lookup('lv_wildlife_', params['wildlife_risk']);
+    if (wildlife != null) params['wildlife_text'] = wildlife;
+    final season = lookup('lv_season_', params['season']);
+    if (season != null) params['season_text'] = season;
+    final label = lookup('lv_', params['label']);
+    if (label != null) params['label_text'] = label;
+    if (params['kind'] != null) params['kind_text'] = kind('${params['kind']}');
+    final gate = params['gate'];
+    if (gate != null) params['gate_text'] = t('gate.${'$gate'.toLowerCase()}');
+    final month = params['month'];
+    if (month is num) params['month_name'] = t('m_${month.round()}');
   }
 
   /// Notes the server sends as plain codes ("market_not_checked").

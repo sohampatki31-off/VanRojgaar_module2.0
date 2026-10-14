@@ -240,6 +240,8 @@ def build_report(
                 name_en=ev.idea.name_en,
                 gate=None,
                 reason=Reason(key="reason.held_back_lower_fit"),
+                fit=ev.fit,
+                flags=_dedupe(ev.flags),
             )
         )
 

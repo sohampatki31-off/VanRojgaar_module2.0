@@ -194,3 +194,23 @@ def test_a_malformed_dataset_document_is_skipped_not_a_crash() -> None:
 def test_resource_documents_carry_no_unused_centroid() -> None:
     doc = resource_to_doc(load_sample_dataset()[1][0], "v1")
     assert "centroid" not in doc
+
+
+def test_chat_document_round_trip_and_index() -> None:
+    from app.livelihood.ask_schemas import AnswerKind, AnswerOut, ChatTurn
+    from app.livelihood.mongo_store import CHAT, INDEXES, chat_to_doc, doc_to_chat
+    from app.livelihood.schemas import Reason
+
+    turn = ChatTurn(
+        id="abc",
+        question="best idea",
+        answer=AnswerOut(
+            kind=AnswerKind.ANSWER,
+            topic="top_ideas",
+            headline=Reason(key="ask.top_ideas", params={"count": 5}),
+        ),
+    )
+    doc = chat_to_doc("user-1", turn)
+    assert doc["user_id"] == "user-1" and doc["turn_id"] == "abc"
+    assert doc_to_chat(doc) == turn
+    assert [i.document["name"] for i in INDEXES[CHAT]] == ["user_latest"]

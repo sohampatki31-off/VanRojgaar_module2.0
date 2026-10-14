@@ -17,9 +17,10 @@ from pymongo.collection import Collection
 from pymongo.database import Database
 
 from ..config import Settings
+from .ask_schemas import ChatTurn
 from .schemas import Idea, ProfileIn, ReportOut, ResourceRecord, VillageGeo
 from .service import DatasetMeta
-from .store import KEEP_REPORTS, StoredProfile
+from .store import KEEP_CHAT, KEEP_REPORTS, StoredProfile
 
 # Reports are ordered by time, then by id (ids are time-ordered UUIDv7), so two reports made in
 # the same millisecond still have one fixed order.
@@ -28,6 +29,7 @@ _NEWEST_FIRST = [("generated_at", DESCENDING), ("report_id", DESCENDING)]
 PROFILES = "lv_profile"
 VILLAGES = "lv_village_geo"
 REPORTS = "lv_report"
+CHAT = "lv_chat_log"
 RESOURCES = "lv_resource"
 IDEAS = "lv_idea"
 DATASETS = "lv_dataset"
@@ -40,6 +42,12 @@ INDEXES: dict[str, list[IndexModel]] = {
     REPORTS: [
         IndexModel(
             [("user_id", ASCENDING), ("generated_at", DESCENDING), ("report_id", DESCENDING)],
+            name="user_latest",
+        )
+    ],
+    CHAT: [
+        IndexModel(
+            [("user_id", ASCENDING), ("at", DESCENDING), ("turn_id", DESCENDING)],
             name="user_latest",
         )
     ],
@@ -90,6 +98,19 @@ def report_to_doc(user_id: str, report: ReportOut) -> dict[str, Any]:
 
 def doc_to_report(doc: dict[str, Any]) -> ReportOut:
     return ReportOut.model_validate(doc["report"])
+
+
+def chat_to_doc(user_id: str, turn: ChatTurn) -> dict[str, Any]:
+    return {
+        "user_id": user_id,
+        "turn_id": turn.id,
+        "at": turn.at,
+        "turn": turn.model_dump(mode="json"),
+    }
+
+
+def doc_to_chat(doc: dict[str, Any]) -> ChatTurn:
+    return ChatTurn.model_validate(doc["turn"])
 
 
 def resource_to_doc(record: ResourceRecord, data_version: str) -> dict[str, Any]:
@@ -222,6 +243,24 @@ class MongoStore:
 
     def delete_reports(self, user_id: str) -> int:
         return self._col(REPORTS).delete_many({"user_id": user_id}).deleted_count
+
+    # the Ask box history
+    def append_chat(self, user_id: str, turn: ChatTurn) -> None:
+        col = self._col(CHAT)
+        col.insert_one(chat_to_doc(user_id, turn))
+        order = [("at", DESCENDING), ("turn_id", DESCENDING)]
+        stale = [
+            d["_id"] for d in col.find({"user_id": user_id}, {"_id": 1}).sort(order).skip(KEEP_CHAT)
+        ]
+        if stale:
+            col.delete_many({"_id": {"$in": stale}})
+
+    def list_chat(self, user_id: str) -> list[ChatTurn]:
+        order = [("at", ASCENDING), ("turn_id", ASCENDING)]
+        return [doc_to_chat(d) for d in self._col(CHAT).find({"user_id": user_id}).sort(order)]
+
+    def delete_chat(self, user_id: str) -> int:
+        return self._col(CHAT).delete_many({"user_id": user_id}).deleted_count
 
     # shared data
     def get_village(self, village_id: str) -> VillageGeo | None:

@@ -13,11 +13,15 @@ class LvScaffold extends ConsumerWidget {
     required this.title,
     required this.body,
     this.bottom,
+    this.actions = const [],
   });
 
   final String title;
   final Widget body;
   final PreferredSizeWidget? bottom;
+
+  /// Buttons this screen adds before the host's own (language and theme switches).
+  final List<Widget> actions;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,6 +38,7 @@ class LvScaffold extends ConsumerWidget {
           style: AppTypography.title.copyWith(color: Colors.white),
         ),
         actions: [
+          ...actions,
           ...ref.watch(hostAppBarActionsProvider),
           const SizedBox(width: AppSpacing.xs),
         ],

@@ -12,10 +12,13 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vanmitra_rozgar/core/api/api_client.dart';
+import 'package:vanmitra_rozgar/features/livelihood/data/ask_repository.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/livelihood_api.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/livelihood_cache.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/livelihood_repository.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/profile_repository.dart';
+import 'package:vanmitra_rozgar/features/livelihood/livelihood_strings.dart';
+import 'package:vanmitra_rozgar/features/livelihood/models/ask.dart';
 import 'package:vanmitra_rozgar/features/livelihood/models/profile.dart';
 
 final _base = Platform.environment['VANMITRA_LIVE_API'];
@@ -147,6 +150,65 @@ void main() {
       },
       skip: skip,
     );
+
+    test('Ask: refused, answered, outside the report, history, delete',
+        () async {
+      final ask = RemoteAskRepository(api);
+      final profiles = OfflineFirstProfileRepository(api, cache);
+      await profiles.save(
+        const LivelihoodProfile(
+          areaValue: 3,
+          areaUnit: AreaUnit.acre,
+          lat: 19.7805,
+          lng: 73.2210,
+          locationSource: LocationSource.gps,
+          livestock: {'cow': 2},
+        ),
+      );
+
+      // harmful: red, no answer, and the server does not keep the question
+      final bad =
+          await ask.ask(question: 'How do I kill the leopard?', lang: 'en');
+      expect(bad.turn.answer.kind, AnswerKind.refusedHarmful);
+      expect(bad.turn.answer.items, isEmpty);
+
+      // an answer from his own report, written in Marathi by the app
+      final good = await ask.ask(
+          question: 'माझ्यासाठी सर्वोत्तम कल्पना कोणती?', lang: 'mr');
+      expect(good.turn.answer.kind, AnswerKind.answer);
+      expect(good.turn.answer.items, isNotEmpty);
+      const mr = LivelihoodStrings('mr');
+      final text = mr.reason(good.turn.answer.items.first);
+      expect(text, isNot(contains('ask.')));
+      expect(good.chips, isNotEmpty);
+
+      // a suggestion is answered by its id; every suggestion the server offers has words
+      for (final chip in good.chips) {
+        expect(mr.reason(chip.label), isNot(startsWith('ask.')));
+        final r = await ask.ask(chip: chip.id, lang: 'en');
+        expect(r.turn.answer.kind, isNot(AnswerKind.refusedHarmful));
+        expect(
+          const LivelihoodStrings('en').reason(r.turn.answer.headline),
+          isNot(startsWith('ask.')),
+        );
+      }
+
+      // not in the report
+      final price =
+          await ask.ask(question: 'What is the price of milk?', lang: 'en');
+      expect(price.turn.answer.kind, AnswerKind.notInReport);
+
+      // history: the refused question was not kept; the others were
+      final history = await ask.history();
+      expect(history.hasReport, isTrue);
+      expect(history.turns.first.question, isNull);
+      expect(history.turns.length, 3 + good.chips.length);
+
+      // delete: gone from the server
+      await ask.clear();
+      expect((await ask.history()).turns, isEmpty);
+      await profiles.delete();
+    }, skip: skip);
 
     test('a place outside Maharashtra is refused by the server', () async {
       final profiles = OfflineFirstProfileRepository(api, cache);

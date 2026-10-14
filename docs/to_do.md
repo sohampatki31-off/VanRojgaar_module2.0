@@ -1,6 +1,6 @@
 # VanMitra Module 4: to-do and status
 
-> Updated 2026-10-14. Companion: [to_do_deferred_items.md](to_do_deferred_items.md) (the four things we
+> Updated 2026-10-14 (evening: stages 1 and 2 done). Companion: [to_do_deferred_items.md](to_do_deferred_items.md) (the four things we
 > chose not to build first, explained in full). Rules that never break: [../CLAUDE.md](../CLAUDE.md).
 > Legend: ✅ done · 🔄 in progress · ⬜ not started · ⛔ blocked on a person or a decision outside the code
 
@@ -17,8 +17,8 @@ encrypted cache, and "Delete my answers" is guaranteed to reach the server.
 
 | Area | Status |
 |---|---|
-| Backend modules 1-3 (rules, profile, reports, nearby, loader, host-style auth seam) | ✅ 151 tests, ruff and strict mypy clean |
-| Frontend modules 1-3 (report, intake form, live API, offline cache) | ✅ 77 tests, analyzer clean |
+| Backend modules 1-3 and the Ask chat (rules, profile, reports, nearby, loader, host-style auth seam, Ask) | ✅ 416 tests, ruff and strict mypy clean |
+| Frontend modules 1-3 and the Ask screen (report, intake form, live API, offline cache, Ask) | ✅ 96 tests (+4 live-contract, run against a real server), analyzer clean |
 | Integration into the host app `vanMitraAI` | ✅ local branch `feature/module4-livelihood`, not pushed (host: 245 backend, 95 Flutter tests) |
 | Running on a real phone (A059P, Android 16, USB) | 🔄 app installs and runs; end-to-end check is stage 1 below |
 | Real MongoDB | ⛔ nothing run against a database yet; needs a person (see below) |
@@ -28,26 +28,30 @@ encrypted cache, and "Delete my answers" is guaranteed to reach the server.
 
 ## 2. The stages to a complete prototype
 
-### Stage 1: finish the phone check 🔄
+### Stage 1: finish the phone check ✅ (headless) / 🔄 (on the phone by hand)
+Proved by the live contract test (the real Dart client against a real backend: save, a second phone reads it, report parses in Marathi, offline fallback, delete). Still to tick by hand on the phone:
 - [ ] Save details on the phone and watch them reach the server (the "waiting to send" message clears)
 - [ ] Show my report: resources, summary, ideas, why-not, footer, **Sample** chip
 - [ ] Switch language Marathi ↔ English; dark theme
 - [ ] Change land to a tiny area: farm ideas show "needs about X ha"
 - [ ] Airplane mode: last saved report appears with the "last saved" banner
 - [ ] Delete my answers: gone from the phone and from the server
+- [ ] NEW: open "Ask about your report" at the bottom of the report; tap a suggestion; type a question
 
-### Stage 2: "Ask about your report" chat ⬜ (deterministic first)
-Backend module then frontend module. No AI model yet; this is the safe foundation the real AI plugs into.
-- [ ] Safety check **first**, in code, before anything else: harmful questions (hunting, trapping, wildlife trade) get the **red** policy message and no answer
-- [ ] Off-topic questions get the **grey** "I can only answer questions about your report"
-- [ ] On-topic answers come only from his own report, in his language, ending "From: <report part>"
-- [ ] Not in the report: grey "This is not in your report. Ask the agriculture officer or the Forest Department"
-- [ ] **Number check**: every number in an answer must exist in the report, or the answer is replaced
-- [ ] Question chips built from the facts in his report (each user sees different ones)
-- [ ] "Trying another idea" (for example fishing): run the same law/wildlife/resource checks in code
-- [ ] The report is data, not instructions ("ignore your rules" changes nothing)
-- [ ] Chat history he can see and delete (L8)
-- [ ] Language switch re-renders earlier answers
+### Stage 2: "Ask about your report" chat ✅ (deterministic; no AI model)
+Backend `POST /ask`, `GET/DELETE /ask/history`; app screen `/livelihood/ask` reached from the end of the report. 270 new backend tests, 19 new app tests.
+- [x] Safety check **first**, in code: harmful questions get the **red** policy message and no answer (en/mr/hi word lists, tested with about 100 harmful and look-alike phrasings; an independent review found gaps and they were fixed). **The word lists are a draft: the forest-law and animal-welfare reviewers and Marathi/Hindi speakers must check them (Q12)**
+- [x] Off-topic questions get the **grey** "I can only answer questions about your report"
+- [x] On-topic answers come only from his own saved report, ending "From: <report part>"; the report is rebuilt first if he changed his details or newer data was loaded
+- [x] Not in the report (prices, loans, schemes, animal attacks, an idea we have not checked): grey "This is not in your report. Ask the agriculture officer or the Forest Department"
+- [x] **Number check** on every answer: a number not in the report replaces the answer with the grey note
+- [x] Question suggestions built from the facts in his report (each user sees different ones)
+- [x] "Trying another idea": answered from what the report found (rank, removed by which law, held back), or an honest "not checked for your land" with no numbers
+- [x] The report is data, not instructions ("ignore your rules" changes nothing; tested)
+- [x] History he can see and delete; deleted with his answers; a refused question is **not kept** and long digit runs are masked (L8)
+- [x] Language switch re-renders earlier answers (answers are `{key, params}`)
+- [ ] Marathi and Hindi wording of every `ask.*` string is a machine draft (Hindi falls back to English for now)
+- [ ] Real MongoDB: `lv_chat_log` index (a person runs `setup_livelihood_indexes.py`); the Mongo chat code is unit-tested only
 
 ### Stage 3: idea detail and Schemes tab ⬜
 - [ ] Idea detail screen: why suggested, what it needs, the checks that ran, a weather note, matching schemes, warnings
@@ -65,7 +69,7 @@ Backend module then frontend module. No AI model yet; this is the safe foundatio
 - [ ] Rehearse the 5-minute pitch path from the PDF (§17); record a backup screen recording
 - [ ] State out loud what is Sample and what is real
 
-### The AI agent (real AI chat) 🔄 started after stage 3
+### The AI agent (real AI chat) ⬜ next, after stage 3
 Stage 2 is the safe foundation. This adds Claude behind the **same** checks.
 - [ ] A pluggable "answerer": the deterministic one (stage 2) or Claude
 - [ ] Claude called **only from the backend**; the key lives in `backend/.env`, never in the app

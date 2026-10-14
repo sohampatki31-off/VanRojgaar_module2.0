@@ -3,9 +3,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme/app_colors.dart';
+import '../features/livelihood/data/ask_repository.dart';
 import '../features/livelihood/data/livelihood_repository.dart';
 import '../features/livelihood/data/profile_repository.dart';
 import '../features/livelihood/livelihood_routes.dart';
+import '../features/livelihood/providers/ask_providers.dart';
 import '../features/livelihood/providers/host_hooks.dart';
 import '../features/livelihood/providers/livelihood_providers.dart';
 import '../features/livelihood/providers/profile_providers.dart';
@@ -35,6 +37,7 @@ List<Override> demoOverrides() => shellIsLive
         livelihoodRepositoryProvider
             .overrideWithValue(const SeedLivelihoodRepository()),
         profileRepositoryProvider.overrideWithValue(MemoryProfileRepository()),
+        askRepositoryProvider.overrideWithValue(const OfflineAskRepository()),
       ];
 
 final _localeProvider = StateProvider<Locale>(
