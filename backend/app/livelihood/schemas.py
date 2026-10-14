@@ -230,6 +230,16 @@ class ProfileIn(BaseModel):
         )
 
 
+class ProfileOut(BaseModel):
+    """A saved profile as the app sees it. `area_ha` is the converted land area."""
+
+    profile: "ProfileIn"
+    area_ha: float | None = None
+    village: "VillageRef | None" = None
+    created_at: datetime
+    updated_at: datetime
+
+
 # ── source data the rules read ────────────────────────────────────────────────
 
 
