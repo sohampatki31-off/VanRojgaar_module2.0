@@ -19,10 +19,11 @@ from uuid6 import uuid7
 
 from ..config import get_settings
 from ..errors import ApiError
-from .auth import CurrentUser, UserInfo
+from .deps import CurrentUser, get_store
 from .domain.config import DEFAULT_CONFIG, LivelihoodConfig
 from .domain.units import AreaUnit
 from .geo import circle_polygon, find_nearby, validate_point
+from .identity import UserInfo
 from .schemas import (
     ANIMAL_CODES,
     ASSET_CODES,
@@ -53,7 +54,7 @@ from .service import (
     resource_card,
     search_radius,
 )
-from .store import LivelihoodStore, StoredProfile, get_store
+from .store import LivelihoodStore, StoredProfile
 
 router = APIRouter(prefix="/livelihood", tags=["livelihood"])
 

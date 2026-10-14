@@ -12,10 +12,10 @@ enum AreaUnit {
 
   /// 1 acre = 0.40468564224 ha; 40 guntha = 1 acre (Maharashtra land units).
   double get toHectaresFactor => switch (this) {
-    AreaUnit.hectare => 1.0,
-    AreaUnit.acre => _acreToHa,
-    AreaUnit.guntha => _acreToHa / 40,
-  };
+        AreaUnit.hectare => 1.0,
+        AreaUnit.acre => _acreToHa,
+        AreaUnit.guntha => _acreToHa / 40,
+      };
 }
 
 const double _acreToHa = 0.40468564224;
@@ -185,8 +185,7 @@ class LivelihoodProfile {
 
     return LivelihoodProfile(
       areaValue: (land['area_value'] as num?)?.toDouble(),
-      areaUnit:
-          byWire(AreaUnit.values, land['area_unit'], (v) => v.wire) ??
+      areaUnit: byWire(AreaUnit.values, land['area_unit'], (v) => v.wire) ??
           AreaUnit.hectare,
       landType: byWire(LandType.values, land['land_type'], (v) => v.wire),
       waterOnLand: byWire(

@@ -68,9 +68,9 @@ class ResourcesScreen extends ConsumerWidget {
                       text: '${s.labelText(label)} ${_count(r.counts, label)}',
                       selected: filter == label,
                       color: UsefulBadge.color(label),
-                      onTap: () =>
-                          ref.read(resourceFilterProvider.notifier).state =
-                              label,
+                      onTap: () => ref
+                          .read(resourceFilterProvider.notifier)
+                          .state = label,
                     ),
                 ],
               ),
@@ -95,10 +95,10 @@ class ResourcesScreen extends ConsumerWidget {
   }
 
   static int _count(Counts c, UsefulLabel l) => switch (l) {
-    UsefulLabel.useful => c.useful,
-    UsefulLabel.partlyUseful => c.partlyUseful,
-    UsefulLabel.notUseful => c.notUseful,
-  };
+        UsefulLabel.useful => c.useful,
+        UsefulLabel.partlyUseful => c.partlyUseful,
+        UsefulLabel.notUseful => c.notUseful,
+      };
 }
 
 /// A filter chip at the 48 dp touch size, with a check mark when selected (not colour alone).

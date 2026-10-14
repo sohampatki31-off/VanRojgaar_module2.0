@@ -10,7 +10,6 @@ Only `villager` and `gram_sabha` users may use this module, each for their OWN l
 """
 
 import uuid
-from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Protocol
 
@@ -20,17 +19,10 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ..config import get_settings
 from ..errors import ApiError
+from .identity import UserInfo
 
 ALLOWED_ROLES = frozenset({"villager", "gram_sabha"})
 _bearer = HTTPBearer(auto_error=False)
-
-
-@dataclass(frozen=True)
-class UserInfo:
-    id: uuid.UUID
-    name: str
-    village_id: str | None
-    roles: frozenset[str]
 
 
 class UserDirectory(Protocol):
@@ -127,6 +119,3 @@ def get_current_user(
     if not (user.roles & ALLOWED_ROLES):
         raise ApiError(403, "FORBIDDEN", "livelihood.role_not_allowed")
     return user
-
-
-CurrentUser = Annotated[UserInfo, Depends(get_current_user)]

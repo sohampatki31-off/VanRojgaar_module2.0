@@ -92,13 +92,13 @@ class _LivelihoodHomeScreenState extends ConsumerState<LivelihoodHomeScreen> {
                   pending
                       ? Icons.sync_rounded
                       : hasDetails
-                      ? Icons.check_circle_outline_rounded
-                      : Icons.edit_note_rounded,
+                          ? Icons.check_circle_outline_rounded
+                          : Icons.edit_note_rounded,
                   color: pending
                       ? context.lvEmphasis
                       : hasDetails
-                      ? AppColors.successGreen
-                      : context.lvEmphasis,
+                          ? AppColors.successGreen
+                          : context.lvEmphasis,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
@@ -107,8 +107,8 @@ class _LivelihoodHomeScreenState extends ConsumerState<LivelihoodHomeScreen> {
                       pending
                           ? 'lv_sync_pending'
                           : hasDetails
-                          ? 'lv_details_saved'
-                          : 'lv_no_details_yet',
+                              ? 'lv_details_saved'
+                              : 'lv_no_details_yet',
                     ),
                     style: AppTypography.body.copyWith(color: c.textPrimary),
                   ),
@@ -139,9 +139,8 @@ class _LivelihoodHomeScreenState extends ConsumerState<LivelihoodHomeScreen> {
               label: Text(s.t('lv_delete_answers')),
               style: TextButton.styleFrom(
                 minimumSize: const Size.fromHeight(48),
-                foregroundColor: c.isDark
-                    ? const Color(0xFFFF8A80)
-                    : AppColors.alertRed,
+                foregroundColor:
+                    c.isDark ? const Color(0xFFFF8A80) : AppColors.alertRed,
               ),
             ),
           ] else ...[

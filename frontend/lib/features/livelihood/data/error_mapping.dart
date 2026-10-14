@@ -1,4 +1,5 @@
 import '../../../core/api/api_client.dart';
+import 'livelihood_api.dart';
 
 /// Turn a failure into the key of a plain-language message. The app never shows a raw error code
 /// (the host's rule): every server `message_key` we know has words, and anything else gets a

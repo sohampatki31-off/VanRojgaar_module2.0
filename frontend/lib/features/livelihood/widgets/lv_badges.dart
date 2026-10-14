@@ -63,16 +63,16 @@ class UsefulBadge extends StatelessWidget {
   final UsefulLabel label;
 
   static Color color(UsefulLabel l) => switch (l) {
-    UsefulLabel.useful => AppColors.successGreen,
-    UsefulLabel.partlyUseful => AppColors.warningAmber,
-    UsefulLabel.notUseful => AppColors.alertRed,
-  };
+        UsefulLabel.useful => AppColors.successGreen,
+        UsefulLabel.partlyUseful => AppColors.warningAmber,
+        UsefulLabel.notUseful => AppColors.alertRed,
+      };
 
   static IconData icon(UsefulLabel l) => switch (l) {
-    UsefulLabel.useful => Icons.check_circle_rounded,
-    UsefulLabel.partlyUseful => Icons.timelapse_rounded,
-    UsefulLabel.notUseful => Icons.remove_circle_rounded,
-  };
+        UsefulLabel.useful => Icons.check_circle_rounded,
+        UsefulLabel.partlyUseful => Icons.timelapse_rounded,
+        UsefulLabel.notUseful => Icons.remove_circle_rounded,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -102,20 +102,20 @@ class FitBadge extends StatelessWidget {
     final s = LivelihoodStrings.of(context);
     final (icon, bg, fg) = switch (fit) {
       FitLabel.good => (
-        Icons.thumb_up_alt_rounded,
-        AppColors.successGreen,
-        Colors.white,
-      ),
+          Icons.thumb_up_alt_rounded,
+          AppColors.successGreen,
+          Colors.white,
+        ),
       FitLabel.fair => (
-        Icons.thumbs_up_down_rounded,
-        AppColors.warningAmber,
-        AppColors.textPrimary,
-      ),
+          Icons.thumbs_up_down_rounded,
+          AppColors.warningAmber,
+          AppColors.textPrimary,
+        ),
       FitLabel.weak => (
-        Icons.thumb_down_alt_rounded,
-        AppColors.alertRed,
-        Colors.white,
-      ),
+          Icons.thumb_down_alt_rounded,
+          AppColors.alertRed,
+          Colors.white,
+        ),
     };
     return StatusPill(
       icon: icon,

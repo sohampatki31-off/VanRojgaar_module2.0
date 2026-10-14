@@ -15,9 +15,10 @@ from app.livelihood.auth import (
     create_access_token,
     get_directory,
 )
+from app.livelihood.deps import get_store
 from app.livelihood.schemas import ReportOut
 from app.livelihood.service import DatasetMeta
-from app.livelihood.store import KEEP_REPORTS, InMemoryStore, get_store
+from app.livelihood.store import KEEP_REPORTS, InMemoryStore
 from app.main import create_app
 
 PROFILE = {

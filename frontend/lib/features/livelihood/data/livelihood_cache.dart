@@ -24,6 +24,30 @@ class MemoryCacheStore implements CacheStore {
   Future<void> remove(String key) async => _data.remove(key);
 }
 
+/// Opens the real store the first time it is needed, so providers can be built without an async
+/// start-up step (the host's `main.dart` needs no change). If the encrypted box cannot be opened
+/// (for example the Keystore is unavailable) it falls back to MEMORY: nothing is then kept across
+/// restarts, but personal data is never written unencrypted.
+class LazyCacheStore implements CacheStore {
+  LazyCacheStore(this._open);
+
+  final Future<CacheStore> Function() _open;
+  Future<CacheStore>? _store;
+
+  Future<CacheStore> get _ready =>
+      _store ??= _open().catchError((_) => MemoryCacheStore() as CacheStore);
+
+  @override
+  Future<String?> read(String key) async => (await _ready).read(key);
+
+  @override
+  Future<void> write(String key, String value) async =>
+      (await _ready).write(key, value);
+
+  @override
+  Future<void> remove(String key) async => (await _ready).remove(key);
+}
+
 /// The real store: an ENCRYPTED Hive box. His land and animals are personal (rule L8), so the
 /// box key is generated once and kept in the Android Keystore (flutter_secure_storage), never
 /// next to the data.

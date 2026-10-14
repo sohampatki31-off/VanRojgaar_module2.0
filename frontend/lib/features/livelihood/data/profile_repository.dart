@@ -1,4 +1,5 @@
 import '../../../core/api/api_client.dart';
+import 'livelihood_api.dart';
 import '../models/profile.dart';
 import 'livelihood_cache.dart';
 
@@ -38,7 +39,7 @@ class MemoryProfileRepository implements ProfileRepository {
 class OfflineFirstProfileRepository implements ProfileRepository {
   OfflineFirstProfileRepository(this._api, this._cache);
 
-  final ApiClient _api;
+  final LivelihoodApi _api;
   final LivelihoodCache _cache;
   bool _pending = false;
 
@@ -93,7 +94,8 @@ class OfflineFirstProfileRepository implements ProfileRepository {
       return profile;
     } on ApiException catch (e) {
       if (e.statusCode == 404) {
-        await _cache.clearPersonal(); // nothing saved on the server, so nothing here either
+        await _cache
+            .clearPersonal(); // nothing saved on the server, so nothing here either
         _pending = false;
         return null;
       }

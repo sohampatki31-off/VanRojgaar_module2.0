@@ -11,9 +11,9 @@ class Reason {
   final Map<String, dynamic> params;
 
   factory Reason.fromJson(Map<String, dynamic> j) => Reason(
-    j['key'] as String,
-    Map<String, dynamic>.from((j['params'] as Map?) ?? const {}),
-  );
+        j['key'] as String,
+        Map<String, dynamic>.from((j['params'] as Map?) ?? const {}),
+      );
 }
 
 enum UsefulLabel { useful, partlyUseful, notUseful }
@@ -73,11 +73,11 @@ class TrustLabel {
   bool get isConfirmed => checkStatus == 'confirmed';
 
   factory TrustLabel.fromJson(Map<String, dynamic> j) => TrustLabel(
-    source: j['source'] as String,
-    sourceDate: j['source_date'] as String,
-    checkStatus: j['check_status'] as String,
-    confidence: j['confidence'] as String?,
-  );
+        source: j['source'] as String,
+        sourceDate: j['source_date'] as String,
+        checkStatus: j['check_status'] as String,
+        confidence: j['confidence'] as String?,
+      );
 }
 
 class ResourceItem {
@@ -113,19 +113,19 @@ class ResourceItem {
       (lang == 'mr' || lang == 'hi') && nameMr.isNotEmpty ? nameMr : nameEn;
 
   factory ResourceItem.fromJson(Map<String, dynamic> j) => ResourceItem(
-    id: j['id'] as String,
-    kind: j['kind'] as String,
-    nameMr: (j['name_mr'] as String?) ?? '',
-    nameEn: (j['name_en'] as String?) ?? '',
-    distanceM: (j['distance_m'] as num).toInt(),
-    tag: j['tag'] as String,
-    label: _useful(j['label']),
-    reason: Reason.fromJson(j['reason'] as Map<String, dynamic>),
-    checkedOnGround: j['checked_on_ground'] as bool,
-    unknownChecks: List<String>.from(j['unknown_checks'] as List),
-    useOnlyThroughGramSabha: j['use_only_through_gram_sabha'] as bool,
-    trust: TrustLabel.fromJson(j['trust'] as Map<String, dynamic>),
-  );
+        id: j['id'] as String,
+        kind: j['kind'] as String,
+        nameMr: (j['name_mr'] as String?) ?? '',
+        nameEn: (j['name_en'] as String?) ?? '',
+        distanceM: (j['distance_m'] as num).toInt(),
+        tag: j['tag'] as String,
+        label: _useful(j['label']),
+        reason: Reason.fromJson(j['reason'] as Map<String, dynamic>),
+        checkedOnGround: j['checked_on_ground'] as bool,
+        unknownChecks: List<String>.from(j['unknown_checks'] as List),
+        useOnlyThroughGramSabha: j['use_only_through_gram_sabha'] as bool,
+        trust: TrustLabel.fromJson(j['trust'] as Map<String, dynamic>),
+      );
 }
 
 class Counts {
@@ -142,11 +142,11 @@ class Counts {
   final int total;
 
   factory Counts.fromJson(Map<String, dynamic> j) => Counts(
-    useful: j['useful'] as int,
-    partlyUseful: j['partly_useful'] as int,
-    notUseful: j['not_useful'] as int,
-    total: j['total'] as int,
-  );
+        useful: j['useful'] as int,
+        partlyUseful: j['partly_useful'] as int,
+        notUseful: j['not_useful'] as int,
+        total: j['total'] as int,
+      );
 }
 
 class ToldByYou {
@@ -157,10 +157,10 @@ class ToldByYou {
   final int? count;
 
   factory ToldByYou.fromJson(Map<String, dynamic> j) => ToldByYou(
-    kind: j['kind'] as String,
-    code: j['code'] as String,
-    count: j['count'] as int?,
-  );
+        kind: j['kind'] as String,
+        code: j['code'] as String,
+        count: j['count'] as int?,
+      );
 }
 
 class Analysis {
@@ -181,18 +181,18 @@ class Analysis {
   final List<String> notes;
 
   static List<Reason> _reasons(Object? raw) => [
-    for (final r in (raw as List? ?? const []))
-      Reason.fromJson(r as Map<String, dynamic>),
-  ];
+        for (final r in (raw as List? ?? const []))
+          Reason.fromJson(r as Map<String, dynamic>),
+      ];
 
   factory Analysis.fromJson(Map<String, dynamic> j) => Analysis(
-    headline: Reason.fromJson(j['headline'] as Map<String, dynamic>),
-    strengths: _reasons(j['strengths']),
-    constraints: _reasons(j['constraints']),
-    ownResources: _reasons(j['own_resources']),
-    nextSteps: _reasons(j['next_steps']),
-    notes: List<String>.from((j['notes'] as List?) ?? const []),
-  );
+        headline: Reason.fromJson(j['headline'] as Map<String, dynamic>),
+        strengths: _reasons(j['strengths']),
+        constraints: _reasons(j['constraints']),
+        ownResources: _reasons(j['own_resources']),
+        nextSteps: _reasons(j['next_steps']),
+        notes: List<String>.from((j['notes'] as List?) ?? const []),
+      );
 }
 
 class IdeaCard {
@@ -230,20 +230,20 @@ class IdeaCard {
       (lang == 'mr' || lang == 'hi') && nameMr.isNotEmpty ? nameMr : nameEn;
 
   factory IdeaCard.fromJson(Map<String, dynamic> j) => IdeaCard(
-    rank: j['rank'] as int,
-    code: j['code'] as String,
-    nameMr: (j['name_mr'] as String?) ?? '',
-    nameEn: (j['name_en'] as String?) ?? '',
-    group: j['group'] as String,
-    fit: _fit(j['fit']),
-    reason: Reason.fromJson(j['reason'] as Map<String, dynamic>),
-    resourcesUsed: List<String>.from(j['resources_used'] as List),
-    costLevel: j['cost_level'] as String,
-    bestSeason: j['best_season'] as String,
-    wildlifeRisk: _wildlife(j['wildlife_risk']),
-    flags: Analysis._reasons(j['flags']),
-    draft: (j['draft'] as bool?) ?? true,
-  );
+        rank: j['rank'] as int,
+        code: j['code'] as String,
+        nameMr: (j['name_mr'] as String?) ?? '',
+        nameEn: (j['name_en'] as String?) ?? '',
+        group: j['group'] as String,
+        fit: _fit(j['fit']),
+        reason: Reason.fromJson(j['reason'] as Map<String, dynamic>),
+        resourcesUsed: List<String>.from(j['resources_used'] as List),
+        costLevel: j['cost_level'] as String,
+        bestSeason: j['best_season'] as String,
+        wildlifeRisk: _wildlife(j['wildlife_risk']),
+        flags: Analysis._reasons(j['flags']),
+        draft: (j['draft'] as bool?) ?? true,
+      );
 }
 
 class RemovedIdea {
@@ -265,12 +265,12 @@ class RemovedIdea {
       (lang == 'mr' || lang == 'hi') && nameMr.isNotEmpty ? nameMr : nameEn;
 
   factory RemovedIdea.fromJson(Map<String, dynamic> j) => RemovedIdea(
-    code: j['code'] as String,
-    nameMr: (j['name_mr'] as String?) ?? '',
-    nameEn: (j['name_en'] as String?) ?? '',
-    gate: j['gate'] as String?,
-    reason: Reason.fromJson(j['reason'] as Map<String, dynamic>),
-  );
+        code: j['code'] as String,
+        nameMr: (j['name_mr'] as String?) ?? '',
+        nameEn: (j['name_en'] as String?) ?? '',
+        gate: j['gate'] as String?,
+        reason: Reason.fromJson(j['reason'] as Map<String, dynamic>),
+      );
 }
 
 class WeatherMonth {
@@ -285,10 +285,10 @@ class WeatherMonth {
   final double tmaxC;
 
   factory WeatherMonth.fromJson(Map<String, dynamic> j) => WeatherMonth(
-    month: j['month'] as int,
-    rainMm: (j['rain_mm'] as num).toDouble(),
-    tmaxC: (j['tmax_c'] as num).toDouble(),
-  );
+        month: j['month'] as int,
+        rainMm: (j['rain_mm'] as num).toDouble(),
+        tmaxC: (j['tmax_c'] as num).toDouble(),
+      );
 }
 
 class Weather {
@@ -298,12 +298,12 @@ class Weather {
   final List<WeatherMonth> months;
 
   factory Weather.fromJson(Map<String, dynamic> j) => Weather(
-    isSample: j['is_sample'] as bool,
-    months: [
-      for (final m in j['months'] as List)
-        WeatherMonth.fromJson(m as Map<String, dynamic>),
-    ],
-  );
+        isSample: j['is_sample'] as bool,
+        months: [
+          for (final m in j['months'] as List)
+            WeatherMonth.fromJson(m as Map<String, dynamic>),
+        ],
+      );
 }
 
 class ReportHeader {
@@ -327,8 +327,8 @@ class ReportHeader {
 
   String village(String lang) =>
       (lang == 'mr' || lang == 'hi') && villageMr.isNotEmpty
-      ? villageMr
-      : villageEn;
+          ? villageMr
+          : villageEn;
 
   factory ReportHeader.fromJson(Map<String, dynamic> j) {
     final village = j['village'] as Map<String, dynamic>;
@@ -380,36 +380,36 @@ class Report {
   final String footerKey;
 
   factory Report.fromJson(Map<String, dynamic> j) => Report(
-    id: j['id'] as String,
-    generatedAt: DateTime.parse(j['generated_at'] as String),
-    dataVersion: j['data_version'] as String,
-    isSampleData: j['is_sample_data'] as bool,
-    newerVersionAvailable: (j['newer_version_available'] as bool?) ?? false,
-    header: ReportHeader.fromJson(j['header'] as Map<String, dynamic>),
-    resources: [
-      for (final r in j['resources'] as List)
-        ResourceItem.fromJson(r as Map<String, dynamic>),
-    ],
-    counts: Counts.fromJson(j['counts'] as Map<String, dynamic>),
-    toldByYou: [
-      for (final t in j['told_by_you'] as List)
-        ToldByYou.fromJson(t as Map<String, dynamic>),
-    ],
-    analysis: Analysis.fromJson(j['analysis'] as Map<String, dynamic>),
-    ideas: [
-      for (final i in j['ideas'] as List)
-        IdeaCard.fromJson(i as Map<String, dynamic>),
-    ],
-    removed: [
-      for (final r in j['removed'] as List)
-        RemovedIdea.fromJson(r as Map<String, dynamic>),
-    ],
-    weather: j['weather'] == null
-        ? null
-        : Weather.fromJson(j['weather'] as Map<String, dynamic>),
-    disastersIsSample:
-        ((j['disasters'] as Map<String, dynamic>?)?['is_sample'] as bool?) ??
-        true,
-    footerKey: (j['footer_key'] as String?) ?? 'footer.suggestion_only',
-  );
+        id: j['id'] as String,
+        generatedAt: DateTime.parse(j['generated_at'] as String),
+        dataVersion: j['data_version'] as String,
+        isSampleData: j['is_sample_data'] as bool,
+        newerVersionAvailable: (j['newer_version_available'] as bool?) ?? false,
+        header: ReportHeader.fromJson(j['header'] as Map<String, dynamic>),
+        resources: [
+          for (final r in j['resources'] as List)
+            ResourceItem.fromJson(r as Map<String, dynamic>),
+        ],
+        counts: Counts.fromJson(j['counts'] as Map<String, dynamic>),
+        toldByYou: [
+          for (final t in j['told_by_you'] as List)
+            ToldByYou.fromJson(t as Map<String, dynamic>),
+        ],
+        analysis: Analysis.fromJson(j['analysis'] as Map<String, dynamic>),
+        ideas: [
+          for (final i in j['ideas'] as List)
+            IdeaCard.fromJson(i as Map<String, dynamic>),
+        ],
+        removed: [
+          for (final r in j['removed'] as List)
+            RemovedIdea.fromJson(r as Map<String, dynamic>),
+        ],
+        weather: j['weather'] == null
+            ? null
+            : Weather.fromJson(j['weather'] as Map<String, dynamic>),
+        disastersIsSample: ((j['disasters']
+                as Map<String, dynamic>?)?['is_sample'] as bool?) ??
+            true,
+        footerKey: (j['footer_key'] as String?) ?? 'footer.suggestion_only',
+      );
 }

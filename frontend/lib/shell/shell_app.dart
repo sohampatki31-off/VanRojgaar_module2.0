@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/api/api_client.dart';
 import '../core/theme/app_colors.dart';
-import '../features/livelihood/data/livelihood_cache.dart';
 import '../features/livelihood/data/livelihood_repository.dart';
 import '../features/livelihood/data/profile_repository.dart';
 import '../features/livelihood/livelihood_routes.dart';
@@ -18,32 +16,26 @@ import '../features/livelihood/providers/profile_providers.dart';
 // from here.
 //
 // Two ways to run it:
-//   * DEMO (no server): `flutter run`. Reads the bundled SAMPLE report; details stay in memory.
 //   * LIVE: `flutter run --dart-define=VANMITRA_API_BASE_URL=http://10.0.2.2:8010
 //           --dart-define=VANMITRA_DEV_TOKEN=<token from backend/scripts/dev_token.py>`
-//     Talks to the backend, and keeps his details and last report on the phone (encrypted).
+//     The feature's DEFAULT wiring: talks to the backend, and keeps his details and last report
+//     on the phone (encrypted). This is exactly how it behaves inside the host app.
+//   * DEMO (no server): `flutter run` with no address. The shell swaps in the bundled SAMPLE
+//     report and keeps his details in memory.
 
 const _apiBaseUrl = String.fromEnvironment('VANMITRA_API_BASE_URL');
-const _devToken = String.fromEnvironment('VANMITRA_DEV_TOKEN');
 
-/// True when a server address and a login token were supplied.
-bool get shellIsLive => _apiBaseUrl.isNotEmpty && _devToken.isNotEmpty;
+/// True when a server address was supplied.
+bool get shellIsLive => _apiBaseUrl.isNotEmpty;
 
-/// The overrides that connect the feature to the server, or none for the demo.
-List<Override> liveOverrides(CacheStore cache, {ApiClient? client}) {
-  final api =
-      client ??
-      ApiClient(baseUrl: _apiBaseUrl, tokenProvider: () async => _devToken);
-  final livelihoodCache = LivelihoodCache(cache);
-  return [
-    livelihoodRepositoryProvider.overrideWithValue(
-      RemoteLivelihoodRepository(api, livelihoodCache),
-    ),
-    profileRepositoryProvider.overrideWithValue(
-      OfflineFirstProfileRepository(api, livelihoodCache),
-    ),
-  ];
-}
+/// The overrides for the DEMO (no server). Live mode needs none: it is the feature's default.
+List<Override> demoOverrides() => shellIsLive
+    ? const []
+    : [
+        livelihoodRepositoryProvider
+            .overrideWithValue(const SeedLivelihoodRepository()),
+        profileRepositoryProvider.overrideWithValue(MemoryProfileRepository()),
+      ];
 
 final _localeProvider = StateProvider<Locale>(
   (ref) => const Locale('mr'),
@@ -52,23 +44,21 @@ final _themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
 
 ThemeData _theme(Brightness b) {
   final dark = b == Brightness.dark;
-  final scheme =
-      ColorScheme.fromSeed(
-        seedColor: AppColors.forestCanopy,
-        brightness: b,
-      ).copyWith(
-        primary: dark ? AppColors.forestMist : AppColors.forestCanopy,
-        secondary: AppColors.saffron,
-        surface: dark ? AppColors.darkCard : AppColors.surfaceCard,
-        error: AppColors.alertRed,
-      );
+  final scheme = ColorScheme.fromSeed(
+    seedColor: AppColors.forestCanopy,
+    brightness: b,
+  ).copyWith(
+    primary: dark ? AppColors.forestMist : AppColors.forestCanopy,
+    secondary: AppColors.saffron,
+    surface: dark ? AppColors.darkCard : AppColors.surfaceCard,
+    error: AppColors.alertRed,
+  );
   return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
     fontFamily: 'NotoSansDevanagari',
-    scaffoldBackgroundColor: dark
-        ? AppColors.darkSurface
-        : AppColors.surfaceBase,
+    scaffoldBackgroundColor:
+        dark ? AppColors.darkSurface : AppColors.surfaceBase,
   );
 }
 
@@ -134,9 +124,8 @@ class _ThemeButton extends ConsumerWidget {
       color: Colors.white,
       constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
       icon: Icon(dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
-      onPressed: () => ref.read(_themeModeProvider.notifier).state = dark
-          ? ThemeMode.light
-          : ThemeMode.dark,
+      onPressed: () => ref.read(_themeModeProvider.notifier).state =
+          dark ? ThemeMode.light : ThemeMode.dark,
     );
   }
 }

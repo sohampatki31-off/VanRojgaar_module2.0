@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:vanmitra_rozgar/core/api/api_client.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/error_mapping.dart';
+import 'package:vanmitra_rozgar/features/livelihood/data/livelihood_api.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/livelihood_cache.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/livelihood_repository.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/profile_repository.dart';
@@ -25,11 +26,11 @@ String _sampleJson() =>
     File('assets/livelihood/sample_report.json').readAsStringSync();
 
 http.Response _json(Object body, [int status = 200]) => http.Response.bytes(
-  utf8.encode(jsonEncode(body)),
-  status,
-  // no charset on purpose: the client must still read Marathi as UTF-8 (the host's care)
-  headers: {'content-type': 'application/json'},
-);
+      utf8.encode(jsonEncode(body)),
+      status,
+      // no charset on purpose: the client must still read Marathi as UTF-8 (the host's care)
+      headers: {'content-type': 'application/json'},
+    );
 
 http.Response _error(int status, String key, [String error = 'ERR']) =>
     _json({'error': error, 'message_key': key, 'details': {}}, status);
@@ -41,14 +42,22 @@ class _Server {
   http.Response Function(http.Request) handler;
   final List<http.Request> calls = [];
 
-  ApiClient client({String base = 'http://host:8010', String? token = 'tok'}) =>
-      ApiClient(
-        baseUrl: base,
-        tokenProvider: token == null ? null : () async => token,
-        client: MockClient((req) async {
-          calls.add(req);
-          return handler(req);
-        }),
+  /// The way the feature talks to the server: the client behind the adapter.
+  LivelihoodApi api({
+    String base = 'http://host:8010',
+    String? token = 'tok',
+    Duration timeout = const Duration(seconds: 5),
+  }) =>
+      HostApiAdapter(
+        ApiClient(
+          baseUrl: base,
+          tokenProvider: token == null ? null : () async => token,
+          client: MockClient((req) async {
+            calls.add(req);
+            return handler(req);
+          }),
+        ),
+        timeout: timeout,
       );
 
   Iterable<String> get paths => calls.map((c) => '${c.method} ${c.url.path}');
@@ -65,12 +74,12 @@ const _profile = LivelihoodProfile(
 );
 
 Map<String, dynamic> _profileOut(LivelihoodProfile p) => {
-  'profile': p.toJson(),
-  'area_ha': p.areaHa,
-  'village': {'id': 'v', 'name_mr': 'ओझर', 'name_en': 'Ozhar'},
-  'created_at': '2026-10-14T00:00:00Z',
-  'updated_at': '2026-10-14T00:00:00Z',
-};
+      'profile': p.toJson(),
+      'area_ha': p.areaHa,
+      'village': {'id': 'v', 'name_mr': 'ओझर', 'name_en': 'Ozhar'},
+      'created_at': '2026-10-14T00:00:00Z',
+      'updated_at': '2026-10-14T00:00:00Z',
+    };
 
 void main() {
   group('ApiClient', () {
@@ -84,7 +93,7 @@ void main() {
           'http://h:8010/api/v1/',
         ]) {
           final s = _Server((_) => _json({'ok': true}));
-          await s.client(base: base).get('/livelihood/meta');
+          await s.api(base: base).get('/livelihood/meta');
           expect(
             s.calls.single.url.toString(),
             'http://h:8010/api/v1/livelihood/meta',
@@ -94,9 +103,11 @@ void main() {
       },
     );
 
-    test('sends the bearer token and JSON headers, and none when there is no token', () async {
+    test(
+        'sends the bearer token and JSON headers, and none when there is no token',
+        () async {
       final s = _Server((_) => _json({}));
-      await s.client().post('/x', body: {'a': 1});
+      await s.api().post('/x', body: {'a': 1});
       expect(s.calls.single.headers['Authorization'], 'Bearer tok');
       expect(
         s.calls.single.headers['Content-Type'],
@@ -105,19 +116,19 @@ void main() {
       expect(jsonDecode(s.calls.single.body), {'a': 1});
 
       final anon = _Server((_) => _json({}));
-      await anon.client(token: null).get('/x');
+      await anon.api(token: null).get('/x');
       expect(anon.calls.single.headers.containsKey('Authorization'), isFalse);
     });
 
     test('reads Marathi as UTF-8', () async {
       final s = _Server((_) => _json({'name': 'ओझर'}));
-      final body = await s.client().get('/x') as Map<String, dynamic>;
+      final body = await s.api().get('/x') as Map<String, dynamic>;
       expect(body['name'], 'ओझर');
     });
 
     test('an empty 204 answer is null', () async {
       final s = _Server((_) => http.Response('', 204));
-      expect(await s.client().delete('/x'), isNull);
+      expect(await s.api().delete('/x'), isNull);
     });
 
     test(
@@ -127,7 +138,7 @@ void main() {
           (_) => _error(422, 'livelihood.radius_too_large', 'RADIUS_TOO_LARGE'),
         );
         await expectLater(
-          s.client().post('/x'),
+          s.api().post('/x'),
           throwsA(
             isA<ApiException>()
                 .having((e) => e.statusCode, 'status', 422)
@@ -145,12 +156,12 @@ void main() {
     test('a 500 that is not our JSON is still a clean ApiException', () async {
       final s = _Server((_) => http.Response('<html>Bad gateway</html>', 502));
       await expectLater(
-        s.client().get('/x'),
+        s.api().get('/x'),
         throwsA(
           isA<ApiException>().having(
             (e) => e.messageKey,
             'key',
-            'error.server',
+            'error.network_or_server',
           ),
         ),
       );
@@ -163,7 +174,7 @@ void main() {
           (_) => http.Response('<html>Sign in to Wi-Fi</html>', 200),
         );
         await expectLater(
-          s.client().get('/x'),
+          s.api().get('/x'),
           throwsA(isA<NetworkException>()),
         );
       },
@@ -173,18 +184,24 @@ void main() {
       'no network, a timeout and a client error all count as offline',
       () async {
         await expectLater(
-          _Server(_offline).client().get('/x'),
+          _Server(_offline).api().get('/x'),
           throwsA(isA<NetworkException>()),
         );
-        final slow = ApiClient(
-          baseUrl: 'http://h',
+        final slow = HostApiAdapter(
+          ApiClient(
+            baseUrl: 'http://h',
+            client: MockClient((_) => Completer<http.Response>().future),
+          ),
           timeout: const Duration(milliseconds: 20),
-          client: MockClient((_) => Completer<http.Response>().future),
         );
         await expectLater(slow.get('/x'), throwsA(isA<NetworkException>()));
-        final broken = ApiClient(
-          baseUrl: 'http://h',
-          client: MockClient((_) async => throw http.ClientException('reset')),
+        final broken = HostApiAdapter(
+          ApiClient(
+            baseUrl: 'http://h',
+            client: MockClient(
+              (_) async => throw http.ClientException('reset'),
+            ),
+          ),
         );
         await expectLater(broken.get('/x'), throwsA(isA<NetworkException>()));
       },
@@ -268,7 +285,7 @@ void main() {
 
     test('builds a report on the server and keeps it on the phone', () async {
       final s = _Server((_) => _json(jsonDecode(_sampleJson())));
-      final repo = RemoteLivelihoodRepository(s.client(), cache);
+      final repo = RemoteLivelihoodRepository(s.api(), cache);
       final r = await repo.report(radiusM: 3000);
       expect(r.fromCache, isFalse);
       expect(r.report.isSampleData, isTrue);
@@ -281,16 +298,16 @@ void main() {
       'with no radius it sends an empty body (the server default is 5 km)',
       () async {
         final s = _Server((_) => _json(jsonDecode(_sampleJson())));
-        await RemoteLivelihoodRepository(s.client(), cache).report();
+        await RemoteLivelihoodRepository(s.api(), cache).report();
         expect(jsonDecode(s.calls.single.body), isEmpty);
       },
     );
 
     test('offline, it shows the last saved report and says so', () async {
       final online = _Server((_) => _json(jsonDecode(_sampleJson())));
-      await RemoteLivelihoodRepository(online.client(), cache).report();
+      await RemoteLivelihoodRepository(online.api(), cache).report();
       final r = await RemoteLivelihoodRepository(
-        _Server(_offline).client(),
+        _Server(_offline).api(),
         cache,
       ).report();
       expect(r.fromCache, isTrue);
@@ -302,7 +319,7 @@ void main() {
       'offline with nothing saved is an honest error, not an empty report',
       () async {
         final repo = RemoteLivelihoodRepository(
-          _Server(_offline).client(),
+          _Server(_offline).api(),
           cache,
         );
         await expectLater(repo.report(), throwsA(isA<NetworkException>()));
@@ -313,15 +330,16 @@ void main() {
       'a server failure (5xx) also falls back to the saved report',
       () async {
         await RemoteLivelihoodRepository(
-          _Server((_) => _json(jsonDecode(_sampleJson()))).client(),
+          _Server((_) => _json(jsonDecode(_sampleJson()))).api(),
           cache,
         ).report();
         final down = _Server((_) => _error(503, 'livelihood.data_not_loaded'));
         expect(
           (await RemoteLivelihoodRepository(
-            down.client(),
+            down.api(),
             cache,
-          ).report()).fromCache,
+          ).report())
+              .fromCache,
           isTrue,
         );
       },
@@ -331,13 +349,13 @@ void main() {
       'a refusal (4xx) is shown, never hidden behind an old report',
       () async {
         await RemoteLivelihoodRepository(
-          _Server((_) => _json(jsonDecode(_sampleJson()))).client(),
+          _Server((_) => _json(jsonDecode(_sampleJson()))).api(),
           cache,
         ).report();
         for (final status in [401, 403, 422]) {
           final refuses = _Server((_) => _error(status, 'auth.required'));
           await expectLater(
-            RemoteLivelihoodRepository(refuses.client(), cache).report(),
+            RemoteLivelihoodRepository(refuses.api(), cache).report(),
             throwsA(
               isA<ApiException>().having((e) => e.statusCode, 'status', status),
             ),
@@ -355,7 +373,7 @@ void main() {
           'report': {'nonsense': true},
         });
         final repo = RemoteLivelihoodRepository(
-          _Server(_offline).client(),
+          _Server(_offline).api(),
           cache,
         );
         await expectLater(repo.report(), throwsA(isA<NetworkException>()));
@@ -369,7 +387,7 @@ void main() {
     setUp(() => cache = LivelihoodCache(MemoryCacheStore()));
 
     OfflineFirstProfileRepository repoFor(_Server s) =>
-        OfflineFirstProfileRepository(s.client(), cache);
+        OfflineFirstProfileRepository(s.api(), cache);
 
     test('saves on the phone and on the server', () async {
       final s = _Server((_) => _json(_profileOut(_profile)));
@@ -407,7 +425,9 @@ void main() {
       },
     );
 
-    test('a refusal is not kept: the old answers come back and the error is raised', () async {
+    test(
+        'a refusal is not kept: the old answers come back and the error is raised',
+        () async {
       await cache.writeJson(
         LivelihoodCache.profileKey,
         const LivelihoodProfile(areaValue: 1).toJson(),
@@ -480,7 +500,9 @@ void main() {
       expect(repo.pendingSync, isFalse);
     });
 
-    test('delete offline: gone locally now, and the server delete is retried until it works (L8)', () async {
+    test(
+        'delete offline: gone locally now, and the server delete is retried until it works (L8)',
+        () async {
       await cache.writeJson(LivelihoodCache.profileKey, _profile.toJson());
       final offline = repoFor(_Server(_offline));
       await offline.delete(); // must not throw

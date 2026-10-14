@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/livelihood_repository.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/location_service.dart';
+import 'package:vanmitra_rozgar/features/livelihood/data/profile_repository.dart';
 import 'package:vanmitra_rozgar/features/livelihood/livelihood_routes.dart';
 import 'package:vanmitra_rozgar/features/livelihood/models/profile.dart';
 import 'package:vanmitra_rozgar/features/livelihood/models/report.dart';
@@ -18,14 +19,14 @@ import 'package:vanmitra_rozgar/features/livelihood/screens/livelihood_home_scre
 class _ReportRepo implements LivelihoodRepository {
   @override
   Future<ReportResult> report({int? radiusM}) => Future.value(
-    ReportResult(
-      Report.fromJson(
-        jsonDecode(
-          File('assets/livelihood/sample_report.json').readAsStringSync(),
-        ) as Map<String, dynamic>,
-      ),
-    ),
-  );
+        ReportResult(
+          Report.fromJson(
+            jsonDecode(
+              File('assets/livelihood/sample_report.json').readAsStringSync(),
+            ) as Map<String, dynamic>,
+          ),
+        ),
+      );
 }
 
 class _FakeLocation implements LocationService {
@@ -52,6 +53,8 @@ Future<ProviderContainer> _pumpHome(
     ProviderScope(
       overrides: [
         livelihoodRepositoryProvider.overrideWithValue(_ReportRepo()),
+        // the feature's default is the live server: these tests keep details in memory
+        profileRepositoryProvider.overrideWithValue(MemoryProfileRepository()),
         if (location != null)
           locationServiceProvider.overrideWithValue(location),
       ],

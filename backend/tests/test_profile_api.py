@@ -13,7 +13,8 @@ from app.livelihood.auth import (
     DEV_VILLAGER_2,
     create_access_token,
 )
-from app.livelihood.store import InMemoryStore, get_store
+from app.livelihood.deps import get_store
+from app.livelihood.store import InMemoryStore
 from app.main import create_app
 
 PROFILE = {

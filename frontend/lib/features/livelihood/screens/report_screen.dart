@@ -413,9 +413,8 @@ class _WhyNot extends StatelessWidget {
                         ? Icons.hourglass_bottom_rounded
                         : Icons.block_rounded,
                     size: 18,
-                    color: r.gate == null
-                        ? c.textSecondary
-                        : AppColors.alertRed,
+                    color:
+                        r.gate == null ? c.textSecondary : AppColors.alertRed,
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(

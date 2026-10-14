@@ -8,18 +8,18 @@ import '../../../core/theme/app_typography.dart';
 /// An icon for an animal or asset code. Every option also carries its name: icons never stand
 /// alone (accessibility), they only help someone who reads little find the right row.
 IconData iconForCode(String code) => switch (code) {
-  'cow' || 'buffalo' || 'bullock' => Icons.pets_rounded,
-  'goat_sheep' => Icons.cruelty_free_rounded,
-  'poultry' => Icons.egg_alt_rounded,
-  'well' || 'borewell' || 'farm_pond' => Icons.water_drop_outlined,
-  'shed' => Icons.warehouse_outlined,
-  'pump' => Icons.settings_input_component_outlined,
-  'drip_kit' => Icons.grain_rounded,
-  'bullock_cart' || 'vehicle' => Icons.local_shipping_outlined,
-  'storage_room' => Icons.inventory_2_outlined,
-  'fodder_land' => Icons.grass_rounded,
-  _ => Icons.more_horiz_rounded,
-};
+      'cow' || 'buffalo' || 'bullock' => Icons.pets_rounded,
+      'goat_sheep' => Icons.cruelty_free_rounded,
+      'poultry' => Icons.egg_alt_rounded,
+      'well' || 'borewell' || 'farm_pond' => Icons.water_drop_outlined,
+      'shed' => Icons.warehouse_outlined,
+      'pump' => Icons.settings_input_component_outlined,
+      'drip_kit' => Icons.grain_rounded,
+      'bullock_cart' || 'vehicle' => Icons.local_shipping_outlined,
+      'storage_room' => Icons.inventory_2_outlined,
+      'fodder_land' => Icons.grass_rounded,
+      _ => Icons.more_horiz_rounded,
+    };
 
 /// A heading above a group of options inside a step.
 class FieldLabel extends StatelessWidget {

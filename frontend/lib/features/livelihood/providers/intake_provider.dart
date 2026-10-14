@@ -79,23 +79,24 @@ class IntakeState {
     bool clearAccuracy = false,
     String? errorKey,
     bool clearError = false,
-  }) => IntakeState(
-    step: step ?? this.step,
-    areaText: areaText ?? this.areaText,
-    unit: unit ?? this.unit,
-    landType: clearLandType ? null : (landType ?? this.landType),
-    water: clearWater ? null : (water ?? this.water),
-    animals: animals ?? this.animals,
-    assets: assets ?? this.assets,
-    pastWork: pastWork ?? this.pastWork,
-    familyWorkers: familyWorkers ?? this.familyWorkers,
-    money: clearMoney ? null : (money ?? this.money),
-    source: source ?? this.source,
-    latText: latText ?? this.latText,
-    lngText: lngText ?? this.lngText,
-    accuracyM: clearAccuracy ? null : (accuracyM ?? this.accuracyM),
-    errorKey: clearError ? null : (errorKey ?? this.errorKey),
-  );
+  }) =>
+      IntakeState(
+        step: step ?? this.step,
+        areaText: areaText ?? this.areaText,
+        unit: unit ?? this.unit,
+        landType: clearLandType ? null : (landType ?? this.landType),
+        water: clearWater ? null : (water ?? this.water),
+        animals: animals ?? this.animals,
+        assets: assets ?? this.assets,
+        pastWork: pastWork ?? this.pastWork,
+        familyWorkers: familyWorkers ?? this.familyWorkers,
+        money: clearMoney ? null : (money ?? this.money),
+        source: source ?? this.source,
+        latText: latText ?? this.latText,
+        lngText: lngText ?? this.lngText,
+        accuracyM: clearAccuracy ? null : (accuracyM ?? this.accuracyM),
+        errorKey: clearError ? null : (errorKey ?? this.errorKey),
+      );
 
   /// What to send and keep. Fields he left empty stay out.
   LivelihoodProfile toProfile() {
@@ -126,8 +127,7 @@ class IntakeState {
     if (p == null) return const IntakeState();
     String fmt(double v) =>
         v == v.roundToDouble() ? v.round().toString() : v.toString();
-    final located =
-        p.lat != null &&
+    final located = p.lat != null &&
         p.lng != null &&
         p.locationSource != LocationSource.villageCentre;
     return IntakeState(
@@ -160,9 +160,8 @@ class IntakeNotifier extends StateNotifier<IntakeState> {
   void setLandType(LandType? t) => state = t == null
       ? state.copyWith(clearLandType: true)
       : state.copyWith(landType: t);
-  void setWater(WaterOnLand? w) => state = w == null
-      ? state.copyWith(clearWater: true)
-      : state.copyWith(water: w);
+  void setWater(WaterOnLand? w) => state =
+      w == null ? state.copyWith(clearWater: true) : state.copyWith(water: w);
 
   // animals
   void setAnimal(String code, int count) {
@@ -190,9 +189,8 @@ class IntakeNotifier extends StateNotifier<IntakeState> {
 
   void setFamilyWorkers(int n) =>
       state = state.copyWith(familyWorkers: n.clamp(0, 15));
-  void setMoney(MoneyLevel? m) => state = m == null
-      ? state.copyWith(clearMoney: true)
-      : state.copyWith(money: m);
+  void setMoney(MoneyLevel? m) => state =
+      m == null ? state.copyWith(clearMoney: true) : state.copyWith(money: m);
 
   // location
   void setSource(LocationSource s) =>
@@ -266,6 +264,5 @@ class IntakeNotifier extends StateNotifier<IntakeState> {
 /// A fresh form each time the screen opens, filled with what he saved before.
 final intakeProvider =
     StateNotifierProvider.autoDispose<IntakeNotifier, IntakeState>(
-      (ref) =>
-          IntakeNotifier(IntakeState.fromProfile(ref.read(profileProvider))),
-    );
+  (ref) => IntakeNotifier(IntakeState.fromProfile(ref.read(profileProvider))),
+);

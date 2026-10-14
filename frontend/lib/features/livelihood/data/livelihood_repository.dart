@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../../core/api/api_client.dart';
+import 'livelihood_api.dart';
 import '../models/report.dart';
 import 'livelihood_cache.dart';
 
@@ -47,7 +48,7 @@ class SeedLivelihoodRepository implements LivelihoodRepository {
 class RemoteLivelihoodRepository implements LivelihoodRepository {
   RemoteLivelihoodRepository(this._api, this._cache);
 
-  final ApiClient _api;
+  final LivelihoodApi _api;
   final LivelihoodCache _cache;
 
   static const _path = '/livelihood/report';
@@ -57,7 +58,7 @@ class RemoteLivelihoodRepository implements LivelihoodRepository {
     try {
       final raw = await _api.post(
         _path,
-        body: {'radius_m': ?radiusM},
+        body: {if (radiusM != null) 'radius_m': radiusM},
       ) as Map<String, dynamic>;
       final result = ReportResult(Report.fromJson(raw));
       await _cache.writeJson(LivelihoodCache.reportKey, {

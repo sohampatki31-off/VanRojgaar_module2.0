@@ -1,12 +1,12 @@
-import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-// A small copy of the host's ApiClient (vanmitra_tem/lib/core/api/api_client.dart), with the
-// same ApiException fields and the same error body {error, message_key, rule?, details}, so the
-// host's own client can replace this file at merge without touching the feature.
+// STANDALONE STAND-IN for the host's ApiClient (vanmitra_tem/lib/core/api/api_client.dart). It has
+// the same public surface the feature uses (get/post/put/delete returning decoded JSON, and
+// ApiException with the same fields), and, like the host's, it throws raw socket errors and has no
+// timeout: the feature's HostApiAdapter adds both. At merge this file is NOT copied: the host's
+// own client is used.
 
 /// The server answered with an error. `messageKey` is what the app turns into plain words.
 class ApiException implements Exception {
@@ -37,29 +37,17 @@ class ApiException implements Exception {
   String toString() => 'ApiException($statusCode $error $messageKey)';
 }
 
-/// There was no usable answer at all: no network, a timeout, or a reply that was not JSON.
-/// The app treats this as "offline" and keeps working from what is on the phone.
-class NetworkException implements Exception {
-  const NetworkException([this.cause]);
-  final Object? cause;
-
-  @override
-  String toString() => 'NetworkException($cause)';
-}
-
 typedef TokenProvider = Future<String?> Function();
 
 class ApiClient {
-  ApiClient({
-    required this.baseUrl,
-    this.tokenProvider,
-    http.Client? client,
-    this.timeout = const Duration(seconds: 20),
-  }) : _client = client ?? http.Client();
+  /// With no arguments it reads the address and a development token from `--dart-define`
+  /// (VANMITRA_API_BASE_URL, VANMITRA_DEV_TOKEN), so `ApiClient()` works here and in the host.
+  ApiClient({String? baseUrl, this.tokenProvider, http.Client? client})
+      : baseUrl =
+            baseUrl ?? const String.fromEnvironment('VANMITRA_API_BASE_URL'),
+        _client = client ?? http.Client();
 
-  /// With or without a trailing slash, and with or without `/api/v1` (same as the host).
   final String baseUrl;
-  final Duration timeout;
   final TokenProvider? tokenProvider;
   final http.Client _client;
 
@@ -71,7 +59,9 @@ class ApiClient {
   }
 
   Future<Map<String, String>> _headers() async {
-    final token = await tokenProvider?.call();
+    final token = tokenProvider != null
+        ? await tokenProvider!()
+        : const String.fromEnvironment('VANMITRA_DEV_TOKEN');
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -79,74 +69,51 @@ class ApiClient {
     };
   }
 
-  Future<dynamic> _send(
-    Future<http.Response> Function(Uri uri, Map<String, String> headers) call,
-    String path,
-  ) async {
-    final uri = Uri.parse('$_root$path');
-    final http.Response response;
-    try {
-      response = await call(uri, await _headers()).timeout(timeout);
-    } on TimeoutException catch (e) {
-      throw NetworkException(e);
-    } on SocketException catch (e) {
-      throw NetworkException(e);
-    } on http.ClientException catch (e) {
-      throw NetworkException(e);
-    }
-    return _handle(response);
-  }
-
   dynamic _handle(http.Response response) {
-    // Always UTF-8: the server sends Marathi text, and without a charset the http package
-    // would read it as Latin-1 (the same care the host takes).
+    // Always UTF-8: the server sends Marathi text, and without a charset the http package would
+    // read it as Latin-1 (the same care the host takes).
     final text = utf8.decode(response.bodyBytes);
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      if (text.isEmpty) return null;
-      try {
-        return jsonDecode(text);
-      } on FormatException catch (e) {
-        throw NetworkException(
-          e,
-        ); // a captive portal or proxy page, not our server
-      }
+      if (response.bodyBytes.isEmpty) return null;
+      return jsonDecode(
+          text); // a FormatException here is mapped by the adapter
     }
     try {
       final body = jsonDecode(text);
-      if (body is Map<String, dynamic> && body.containsKey('message_key')) {
+      if (body is Map<String, dynamic>) {
         throw ApiException.fromJson(response.statusCode, body);
       }
     } on FormatException {
-      // fall through: not our error body
+      // not our error body
     }
     throw ApiException(
       statusCode: response.statusCode,
-      error: 'SERVER_ERROR',
-      messageKey: response.statusCode >= 500 ? 'error.server' : 'error.unknown',
+      error: 'NETWORK_OR_SERVER_ERROR',
+      messageKey: 'error.network_or_server',
     );
   }
 
-  Future<dynamic> get(String path) =>
-      _send((u, h) => _client.get(u, headers: h), path);
+  Future<dynamic> get(String path) async => _handle(
+      await _client.get(Uri.parse('$_root$path'), headers: await _headers()));
 
-  Future<dynamic> post(String path, {Map<String, dynamic>? body}) => _send(
-    (u, h) => _client.post(
-      u,
-      headers: h,
-      body: body == null ? null : jsonEncode(body),
-    ),
-    path,
-  );
+  Future<dynamic> post(String path, {Map<String, dynamic>? body}) async =>
+      _handle(
+        await _client.post(
+          Uri.parse('$_root$path'),
+          headers: await _headers(),
+          body: body != null ? jsonEncode(body) : null,
+        ),
+      );
 
-  Future<dynamic> put(String path, {Map<String, dynamic>? body}) => _send(
-    (u, h) => _client.put(
-      u,
-      headers: h,
-      body: body == null ? null : jsonEncode(body),
-    ),
-    path,
-  );
+  Future<dynamic> put(String path, {Map<String, dynamic>? body}) async =>
+      _handle(
+        await _client.put(
+          Uri.parse('$_root$path'),
+          headers: await _headers(),
+          body: body != null ? jsonEncode(body) : null,
+        ),
+      );
 
-  Future<dynamic> delete(String path) =>
-      _send((u, h) => _client.delete(u, headers: h), path);
+  Future<dynamic> delete(String path) async => _handle(await _client
+      .delete(Uri.parse('$_root$path'), headers: await _headers()));
 }

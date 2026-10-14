@@ -3,9 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/location_service.dart';
 import '../data/profile_repository.dart';
 import '../models/profile.dart';
+import 'livelihood_providers.dart';
 
+/// Offline first: saved on the phone at once, sent to the server when it can be. The standalone
+/// demo overrides this with an in-memory one.
 final profileRepositoryProvider = Provider<ProfileRepository>(
-  (ref) => MemoryProfileRepository(),
+  (ref) => OfflineFirstProfileRepository(
+    ref.watch(livelihoodApiProvider),
+    ref.watch(livelihoodCacheProvider),
+  ),
 );
 
 final locationServiceProvider = Provider<LocationService>(
@@ -53,8 +59,8 @@ class ProfileController extends StateNotifier<LivelihoodProfile?> {
 
 final profileProvider =
     StateNotifierProvider<ProfileController, LivelihoodProfile?>(
-      (ref) => ProfileController(
-        ref.watch(profileRepositoryProvider),
-        (pending) => ref.read(syncPendingProvider.notifier).state = pending,
-      ),
-    );
+  (ref) => ProfileController(
+    ref.watch(profileRepositoryProvider),
+    (pending) => ref.read(syncPendingProvider.notifier).state = pending,
+  ),
+);

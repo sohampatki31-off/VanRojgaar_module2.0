@@ -6,7 +6,7 @@ Where profiles, reports and resources are kept.
   SAMPLE dataset, so it needs no database.
 - `MongoStore` (mongo_store.py): the real database.
 
-At merge the host's `Store` unit of work replaces `MongoStore`; the routes do not change.
+Which one a request gets is decided in deps.py (the one file that differs in the host).
 Everything personal is keyed by the signed-in user's id: there is no way to ask for someone
 else's profile or report.
 """
@@ -14,13 +14,11 @@ else's profile or report.
 import threading
 from collections.abc import Sequence
 from datetime import UTC, datetime
-from functools import lru_cache
 from typing import Any, Protocol
 
 from pydantic import BaseModel, Field
 from shapely.geometry import shape
 
-from ..config import get_settings
 from .schemas import Idea, ProfileIn, ReportOut, ResourceRecord, VillageGeo
 from .seed import load_demo_village, load_ideas, load_sample_dataset
 from .service import DatasetMeta
@@ -156,21 +154,3 @@ class InMemoryStore:
             for r in self._resources
             if r.status == "active" and not r.sensitive and area.intersects(shape(r.geometry))
         ]
-
-
-_memory_store = InMemoryStore()
-
-
-@lru_cache
-def _mongo_store() -> Any:
-    from .mongo_store import MongoStore  # imported lazily: tests and dev need no database
-
-    return MongoStore.from_settings(get_settings())
-
-
-def get_store() -> LivelihoodStore:
-    """FastAPI dependency. Tests override it; production picks the Mongo store by setting."""
-    if get_settings().livelihood_store == "mongo":
-        store: LivelihoodStore = _mongo_store()
-        return store
-    return _memory_store

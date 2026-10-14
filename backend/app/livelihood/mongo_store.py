@@ -14,6 +14,7 @@ from typing import Any
 
 from pymongo import ASCENDING, DESCENDING, GEOSPHERE, IndexModel, MongoClient
 from pymongo.collection import Collection
+from pymongo.database import Database
 
 from ..config import Settings
 from .schemas import Idea, ProfileIn, ReportOut, ResourceRecord, VillageGeo
@@ -165,8 +166,10 @@ def combine_datasets(dataset_docs: list[dict[str, Any]]) -> DatasetMeta | None:
 
 
 class MongoStore:
-    def __init__(self, client: "MongoClient[dict[str, Any]]", db_name: str) -> None:
-        self._db = client[db_name]
+    def __init__(self, database: "Database[dict[str, Any]]") -> None:
+        # In the host this is `get_database()` from app/mongo.py (its codec options already
+        # handle dates and UUIDs); standalone it comes from `from_settings`.
+        self._db = database
 
     @classmethod
     def from_settings(cls, settings: Settings) -> "MongoStore":
@@ -176,7 +179,7 @@ class MongoStore:
             serverSelectionTimeoutMS=settings.db_connect_timeout_s * 1000,
             appname="vanmitra-livelihood",
         )
-        return cls(client, settings.mongodb_db)
+        return cls(client[settings.mongodb_db])
 
     def _col(self, name: str) -> "Collection[dict[str, Any]]":
         return self._db[name]

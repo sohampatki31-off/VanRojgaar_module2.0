@@ -17,7 +17,9 @@ const Map<String, Map<String, String>> _text = {
     // screens and actions
     'lv_title': 'My livelihood report',
     'lv_card_title': 'My livelihood',
-    'lv_home_intro': 'See what is around your land and work you could start. Everything here is a suggestion for you to check.',
+    'lv_card_sub': 'See resources near your land and work you could start',
+    'lv_home_intro':
+        'See what is around your land and work you could start. Everything here is a suggestion for you to check.',
     'lv_show_report': 'Show my report',
     'lv_open_resources': 'See all resources',
     'lv_back': 'Back',
@@ -33,7 +35,8 @@ const Map<String, Map<String, String>> _text = {
         'You have not added details yet. Add them to get ideas that fit you.',
     'lv_delete_answers': 'Delete my answers',
     'lv_delete_title': 'Delete your answers?',
-    'lv_delete_body': 'This removes the details you entered. Your report goes back to a general list. This cannot be undone.',
+    'lv_delete_body':
+        'This removes the details you entered. Your report goes back to a general list. This cannot be undone.',
     'lv_delete_confirm': 'Delete answers',
     'lv_keep': 'Keep them',
     'lv_deleted': 'Your answers were deleted.',
@@ -43,7 +46,8 @@ const Map<String, Map<String, String>> _text = {
     'lv_step_own': 'What you already have',
     'lv_step_work': 'Past work and money',
     'lv_step_location': 'Where is your land?',
-    'lv_optional_note': 'Every question is optional. Only you can see your answers. You can delete them any time.',
+    'lv_optional_note':
+        'Every question is optional. Only you can see your answers. You can delete them any time.',
     'lv_next': 'Next',
     'lv_save_details': 'Save my details',
     'lv_land_area': 'How much land do you have?',
@@ -73,15 +77,19 @@ const Map<String, Map<String, String>> _text = {
     'lv_loc_gps': 'Use my current location',
     'lv_loc_manual': 'Type the coordinates',
     'lv_loc_village': 'Use my village centre',
-    'lv_loc_village_note': 'The report will be measured from your village centre, not from your plot.',
+    'lv_loc_village_note':
+        'The report will be measured from your village centre, not from your plot.',
     'lv_lat': 'Latitude',
     'lv_lng': 'Longitude',
     'lv_loc_getting': 'Finding your location',
     'lv_loc_got': 'Location found: {lat}, {lng}',
     'lv_loc_accuracy': 'Accurate to about {acc} m',
-    'lv_loc_denied': 'Location permission was denied. Type the coordinates or use your village centre.',
-    'lv_loc_denied_forever': 'Location is blocked for this app. Allow it in the phone settings, or type the coordinates.',
-    'lv_loc_off': 'Location is switched off on this phone. Switch it on, or type the coordinates.',
+    'lv_loc_denied':
+        'Location permission was denied. Type the coordinates or use your village centre.',
+    'lv_loc_denied_forever':
+        'Location is blocked for this app. Allow it in the phone settings, or type the coordinates.',
+    'lv_loc_off':
+        'Location is switched off on this phone. Switch it on, or type the coordinates.',
     'lv_loc_failed':
         'We could not find your location. Try again, or type the coordinates.',
     'lv_err_outside_mh':
@@ -95,7 +103,8 @@ const Map<String, Map<String, String>> _text = {
     'lv_err_offline': 'No internet right now. Try again when you are online.',
     'lv_err_signin': 'Please sign in again to see your report.',
     'lv_err_role': 'This part is for villagers and Gram Sabha members.',
-    'lv_err_no_village': 'Your account is not linked to a village yet. Ask the Gram Sabha office.',
+    'lv_err_no_village':
+        'Your account is not linked to a village yet. Ask the Gram Sabha office.',
     'lv_err_data':
         'The resource data is not ready yet. Please try again later.',
     'lv_err_radius': 'That distance is not allowed. Use up to 10 km.',
@@ -166,14 +175,18 @@ const Map<String, Map<String, String>> _text = {
         'Suggestion only. Check on the ground. The Gram Sabha decides.',
     'lv_policy_link': 'Read our policy',
     'lv_policy_title': 'Wildlife policy',
-    'lv_policy_body': 'VanMitra does not support hunting, trapping, selling of wildlife or wildlife parts, or any activity that harms animals or their homes.',
-    'lv_policy_check': 'Ideas near protected areas must be cleared with the Forest Department first. We say "check with the Forest Department", not "safe", because our map layers are not complete.',
-    'lv_no_resources': 'No resources found within {radius_km} km in our data. This does not mean there are none.',
+    'lv_policy_body':
+        'VanMitra does not support hunting, trapping, selling of wildlife or wildlife parts, or any activity that harms animals or their homes.',
+    'lv_policy_check':
+        'Ideas near protected areas must be cleared with the Forest Department first. We say "check with the Forest Department", not "safe", because our map layers are not complete.',
+    'lv_no_resources':
+        'No resources found within {radius_km} km in our data. This does not mean there are none.',
     'lv_no_ideas':
         'No ideas to show yet. Add your details to get ideas that fit you.',
     'lv_weather_note': 'Typical, from past years. Not a forecast.',
     'lv_weather_rain': 'Rain (mm)',
-    'lv_disasters_none': 'No record of past disasters found in our data. This does not mean there were none.',
+    'lv_disasters_none':
+        'No record of past disasters found in our data. This does not mean there were none.',
     'lv_held_back': 'Held back: other ideas fit you better',
     'lv_gate_removed': 'Removed: {why}',
     // told-by-you names
@@ -252,10 +265,12 @@ const Map<String, Map<String, String>> _text = {
         'Grazing land nearby points towards fodder work',
     'analysis.headline.pond_dam_tank':
         'A pond nearby points towards fish culture as a group',
-    'analysis.headline.community_forest': 'Community forest nearby points towards forest work through the Gram Sabha',
+    'analysis.headline.community_forest':
+        'Community forest nearby points towards forest work through the Gram Sabha',
     'analysis.headline.generic':
         'Add your details to see where you are heading',
-    'analysis.water_nearby': '{count} water sources within {radius_km} km; the nearest is {nearest_m_fmt} away',
+    'analysis.water_nearby':
+        '{count} water sources within {radius_km} km; the nearest is {nearest_m_fmt} away',
     'analysis.own_water_source': 'You have a water source of your own',
     'analysis.no_water_nearby':
         'No water source found within {radius_km} km in our data',
@@ -289,7 +304,9 @@ const Map<String, Map<String, String>> _text = {
   'mr': {
     'lv_title': 'माझा रोजगार अहवाल',
     'lv_card_title': 'माझा रोजगार',
-    'lv_home_intro': 'तुमच्या जमिनीभोवती काय आहे आणि कोणते काम सुरू करता येईल ते पहा. येथील सर्व काही तुम्ही तपासून पाहण्यासाठीची सूचना आहे.',
+    'lv_card_sub': 'तुमच्या जमिनीजवळची साधने आणि सुरू करता येतील अशी कामे पहा',
+    'lv_home_intro':
+        'तुमच्या जमिनीभोवती काय आहे आणि कोणते काम सुरू करता येईल ते पहा. येथील सर्व काही तुम्ही तपासून पाहण्यासाठीची सूचना आहे.',
     'lv_show_report': 'माझा अहवाल दाखवा',
     'lv_open_resources': 'सर्व साधने पहा',
     'lv_back': 'मागे',
@@ -300,10 +317,12 @@ const Map<String, Map<String, String>> _text = {
     'lv_add_details': 'तुमची माहिती भरा',
     'lv_edit_details': 'माझी माहिती बदला',
     'lv_details_saved': 'तुमची माहिती या फोनवर जतन केली आहे.',
-    'lv_no_details_yet': 'तुम्ही अजून माहिती भरलेली नाही. तुम्हाला जुळणाऱ्या कल्पनांसाठी ती भरा.',
+    'lv_no_details_yet':
+        'तुम्ही अजून माहिती भरलेली नाही. तुम्हाला जुळणाऱ्या कल्पनांसाठी ती भरा.',
     'lv_delete_answers': 'माझी उत्तरे हटवा',
     'lv_delete_title': 'तुमची उत्तरे हटवायची?',
-    'lv_delete_body': 'तुम्ही भरलेली माहिती काढून टाकली जाईल. तुमचा अहवाल सर्वसाधारण यादीवर परत जाईल. हे परत करता येणार नाही.',
+    'lv_delete_body':
+        'तुम्ही भरलेली माहिती काढून टाकली जाईल. तुमचा अहवाल सर्वसाधारण यादीवर परत जाईल. हे परत करता येणार नाही.',
     'lv_delete_confirm': 'उत्तरे हटवा',
     'lv_keep': 'ठेवा',
     'lv_deleted': 'तुमची उत्तरे हटवली आहेत.',
@@ -313,7 +332,8 @@ const Map<String, Map<String, String>> _text = {
     'lv_step_own': 'तुमच्याकडे आधीच काय आहे',
     'lv_step_work': 'पूर्वीचे काम आणि पैसे',
     'lv_step_location': 'तुमची जमीन कुठे आहे?',
-    'lv_optional_note': 'प्रत्येक प्रश्न ऐच्छिक आहे. तुमची उत्तरे फक्त तुम्हीच पाहू शकता. ती तुम्ही केव्हाही हटवू शकता.',
+    'lv_optional_note':
+        'प्रत्येक प्रश्न ऐच्छिक आहे. तुमची उत्तरे फक्त तुम्हीच पाहू शकता. ती तुम्ही केव्हाही हटवू शकता.',
     'lv_next': 'पुढे',
     'lv_save_details': 'माझी माहिती जतन करा',
     'lv_land_area': 'तुमच्याकडे किती जमीन आहे?',
@@ -350,11 +370,14 @@ const Map<String, Map<String, String>> _text = {
     'lv_loc_getting': 'तुमचे ठिकाण शोधत आहे',
     'lv_loc_got': 'ठिकाण सापडले: {lat}, {lng}',
     'lv_loc_accuracy': 'सुमारे {acc} मी अचूक',
-    'lv_loc_denied': 'स्थानाची परवानगी नाकारली गेली. निर्देशांक टाइप करा किंवा गावाचा मध्य वापरा.',
-    'lv_loc_denied_forever': 'या अॅपसाठी स्थान बंद आहे. फोनच्या सेटिंगमध्ये ते चालू करा, किंवा निर्देशांक टाइप करा.',
+    'lv_loc_denied':
+        'स्थानाची परवानगी नाकारली गेली. निर्देशांक टाइप करा किंवा गावाचा मध्य वापरा.',
+    'lv_loc_denied_forever':
+        'या अॅपसाठी स्थान बंद आहे. फोनच्या सेटिंगमध्ये ते चालू करा, किंवा निर्देशांक टाइप करा.',
     'lv_loc_off':
         'या फोनवर स्थान बंद आहे. ते चालू करा, किंवा निर्देशांक टाइप करा.',
-    'lv_loc_failed': 'तुमचे ठिकाण सापडले नाही. पुन्हा प्रयत्न करा, किंवा निर्देशांक टाइप करा.',
+    'lv_loc_failed':
+        'तुमचे ठिकाण सापडले नाही. पुन्हा प्रयत्न करा, किंवा निर्देशांक टाइप करा.',
     'lv_err_outside_mh': 'हे ठिकाण महाराष्ट्राबाहेर आहे. संख्या तपासा.',
     'lv_err_coords': 'अक्षांश आणि रेखांश दोन्ही भरा.',
     'lv_save_failed': 'तुमची माहिती जतन करता आली नाही. पुन्हा प्रयत्न करा.',
@@ -433,13 +456,18 @@ const Map<String, Map<String, String>> _text = {
     'lv_footer': 'फक्त सूचना. प्रत्यक्ष जागेवर तपासा. निर्णय ग्रामसभा घेते.',
     'lv_policy_link': 'आमचे धोरण वाचा',
     'lv_policy_title': 'वन्यजीव धोरण',
-    'lv_policy_body': 'वनमित्र शिकार, सापळे लावणे, वन्यजीव किंवा त्यांच्या अवयवांची विक्री, किंवा प्राण्यांना व त्यांच्या अधिवासाला हानी पोहोचवणाऱ्या कोणत्याही कृतीला पाठिंबा देत नाही.',
-    'lv_policy_check': 'संरक्षित क्षेत्राजवळील कल्पना आधी वन विभागाकडून तपासून घ्याव्यात. आमचे नकाशा स्तर अपूर्ण असल्याने आम्ही "सुरक्षित" नव्हे, तर "वन विभागाकडे तपासा" असे म्हणतो.',
-    'lv_no_resources': 'आमच्या माहितीत {radius_km} किमी परिसरात साधने आढळली नाहीत. याचा अर्थ ती नाहीतच असा नाही.',
-    'lv_no_ideas': 'अजून दाखवण्यासाठी कल्पना नाहीत. तुम्हाला जुळणाऱ्या कल्पनांसाठी तुमची माहिती भरा.',
+    'lv_policy_body':
+        'वनमित्र शिकार, सापळे लावणे, वन्यजीव किंवा त्यांच्या अवयवांची विक्री, किंवा प्राण्यांना व त्यांच्या अधिवासाला हानी पोहोचवणाऱ्या कोणत्याही कृतीला पाठिंबा देत नाही.',
+    'lv_policy_check':
+        'संरक्षित क्षेत्राजवळील कल्पना आधी वन विभागाकडून तपासून घ्याव्यात. आमचे नकाशा स्तर अपूर्ण असल्याने आम्ही "सुरक्षित" नव्हे, तर "वन विभागाकडे तपासा" असे म्हणतो.',
+    'lv_no_resources':
+        'आमच्या माहितीत {radius_km} किमी परिसरात साधने आढळली नाहीत. याचा अर्थ ती नाहीतच असा नाही.',
+    'lv_no_ideas':
+        'अजून दाखवण्यासाठी कल्पना नाहीत. तुम्हाला जुळणाऱ्या कल्पनांसाठी तुमची माहिती भरा.',
     'lv_weather_note': 'मागील वर्षांनुसार सामान्य स्थिती. हा अंदाज नाही.',
     'lv_weather_rain': 'पाऊस (मिमी)',
-    'lv_disasters_none': 'आमच्या माहितीत भूतकाळातील आपत्तीची नोंद आढळली नाही. याचा अर्थ घटना झाल्या नाहीत असा नाही.',
+    'lv_disasters_none':
+        'आमच्या माहितीत भूतकाळातील आपत्तीची नोंद आढळली नाही. याचा अर्थ घटना झाल्या नाहीत असा नाही.',
     'lv_held_back': 'मागे ठेवली: इतर कल्पना तुम्हाला अधिक जुळतात',
     'lv_gate_removed': 'वगळली: {why}',
     'a_cow': 'गाय',
@@ -516,7 +544,8 @@ const Map<String, Map<String, String>> _text = {
         'जवळचे सामूहिक वन ग्रामसभेमार्फत वन कामाकडे निर्देश करते',
     'analysis.headline.generic':
         'तुम्ही कोणत्या दिशेने जात आहात हे पाहण्यासाठी तुमची माहिती भरा',
-    'analysis.water_nearby': '{radius_km} किमी परिसरात {count} पाण्याचे स्रोत; सर्वात जवळचा {nearest_m_fmt} अंतरावर',
+    'analysis.water_nearby':
+        '{radius_km} किमी परिसरात {count} पाण्याचे स्रोत; सर्वात जवळचा {nearest_m_fmt} अंतरावर',
     'analysis.own_water_source': 'तुमच्याकडे स्वतःचा पाण्याचा स्रोत आहे',
     'analysis.no_water_nearby':
         'आमच्या माहितीत {radius_km} किमी परिसरात पाण्याचा स्रोत आढळला नाही',
@@ -541,7 +570,8 @@ const Map<String, Map<String, String>> _text = {
         'तुम्ही अजून माहिती भरलेली नाही, म्हणून ही यादी सर्वसाधारण आहे.',
     'note.land_area_missing':
         'कोणत्या कल्पना जुळतात ते तपासण्यासाठी तुमच्या जमिनीचे क्षेत्र भरा.',
-    'note.from_village_centre': 'गावाच्या मध्यापासून मोजले आहे. अधिक अचूक अहवालासाठी तुमची जमीन नकाशावर निवडा.',
+    'note.from_village_centre':
+        'गावाच्या मध्यापासून मोजले आहे. अधिक अचूक अहवालासाठी तुमची जमीन नकाशावर निवडा.',
     'note.market_not_checked': 'बाजारपेठेची उपलब्धता अजून तपासलेली नाही.',
     'note.dataset_is_sample':
         'हा अहवाल नमुना माहितीवर आधारित आहे, खऱ्या सर्वेक्षणावर नाही.',
@@ -631,28 +661,27 @@ class LivelihoodStrings {
   String note(String code) => t('note.$code');
 
   String labelText(UsefulLabel l) => switch (l) {
-    UsefulLabel.useful => t('lv_useful'),
-    UsefulLabel.partlyUseful => t('lv_partly_useful'),
-    UsefulLabel.notUseful => t('lv_not_useful'),
-  };
+        UsefulLabel.useful => t('lv_useful'),
+        UsefulLabel.partlyUseful => t('lv_partly_useful'),
+        UsefulLabel.notUseful => t('lv_not_useful'),
+      };
 
   String fitText(FitLabel f) => switch (f) {
-    FitLabel.good => t('lv_fit_good'),
-    FitLabel.fair => t('lv_fit_fair'),
-    FitLabel.weak => t('lv_fit_weak'),
-  };
+        FitLabel.good => t('lv_fit_good'),
+        FitLabel.fair => t('lv_fit_fair'),
+        FitLabel.weak => t('lv_fit_weak'),
+      };
 
   String wildlifeText(Wildlife w) => switch (w) {
-    Wildlife.low => t('lv_wildlife_low'),
-    Wildlife.medium => t('lv_wildlife_medium'),
-    Wildlife.needsPermission => t('lv_wildlife_needs_permission'),
-  };
+        Wildlife.low => t('lv_wildlife_low'),
+        Wildlife.medium => t('lv_wildlife_medium'),
+        Wildlife.needsPermission => t('lv_wildlife_needs_permission'),
+      };
 
   /// "Source · date · status" for a trust label. An unknown date says so (rule L1).
   String trustLine(TrustLabel trust) {
-    final date = trust.sourceDate == 'unknown'
-        ? t('lv_date_unknown')
-        : trust.sourceDate;
+    final date =
+        trust.sourceDate == 'unknown' ? t('lv_date_unknown') : trust.sourceDate;
     final status = trust.isConfirmed ? t('lv_confirmed') : t('lv_to_verify');
     return '${t('lv_source')}: ${trust.source}, $date. $status';
   }

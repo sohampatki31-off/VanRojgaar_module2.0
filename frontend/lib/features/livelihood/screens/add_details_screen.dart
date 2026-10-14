@@ -538,28 +538,29 @@ class _LocationStepState extends ConsumerState<_LocationStep> {
                   ],
                 )
               : state.source == LocationSource.gps && state.latText.isNotEmpty
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      s.t('lv_loc_got', {
-                        'lat': state.latText,
-                        'lng': state.lngText,
-                      }),
-                      style: AppTypography.body.copyWith(color: c.textPrimary),
-                    ),
-                    if (state.accuracyM != null)
-                      Text(
-                        s.t('lv_loc_accuracy', {
-                          'acc': state.accuracyM!.round(),
-                        }),
-                        style: AppTypography.caption.copyWith(
-                          color: c.textSecondary,
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          s.t('lv_loc_got', {
+                            'lat': state.latText,
+                            'lng': state.lngText,
+                          }),
+                          style:
+                              AppTypography.body.copyWith(color: c.textPrimary),
                         ),
-                      ),
-                  ],
-                )
-              : null,
+                        if (state.accuracyM != null)
+                          Text(
+                            s.t('lv_loc_accuracy', {
+                              'acc': state.accuracyM!.round(),
+                            }),
+                            style: AppTypography.caption.copyWith(
+                              color: c.textSecondary,
+                            ),
+                          ),
+                      ],
+                    )
+                  : null,
         ),
         if (_failureKey != null) _ErrorLine(_failureKey),
         _SourceCard(
@@ -705,9 +706,8 @@ class _SourceCard extends StatelessWidget {
                           selected
                               ? Icons.radio_button_checked_rounded
                               : Icons.radio_button_unchecked_rounded,
-                          color: selected
-                              ? AppColors.forestSage
-                              : c.textSecondary,
+                          color:
+                              selected ? AppColors.forestSage : c.textSecondary,
                         ),
                       ],
                     ),

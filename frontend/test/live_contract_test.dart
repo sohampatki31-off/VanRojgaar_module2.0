@@ -12,6 +12,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vanmitra_rozgar/core/api/api_client.dart';
+import 'package:vanmitra_rozgar/features/livelihood/data/livelihood_api.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/livelihood_cache.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/livelihood_repository.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/profile_repository.dart';
@@ -30,11 +31,13 @@ void main() {
   ); // flutter_test blocks real HTTP by default
 
   group('live backend', () {
-    late ApiClient api;
+    late LivelihoodApi api;
     late LivelihoodCache cache;
 
     setUp(() {
-      api = ApiClient(baseUrl: _base ?? '', tokenProvider: () async => _token);
+      api = HostApiAdapter(
+        ApiClient(baseUrl: _base ?? '', tokenProvider: () async => _token),
+      );
       cache = LivelihoodCache(MemoryCacheStore());
     });
 
@@ -95,9 +98,11 @@ void main() {
       expect(r.weather, isNotNull);
 
       // the server dropped the network: the same report comes back from the phone
-      final offlineApi = ApiClient(
-        baseUrl: 'http://127.0.0.1:1',
-        tokenProvider: () async => _token,
+      final offlineApi = HostApiAdapter(
+        ApiClient(
+          baseUrl: 'http://127.0.0.1:1',
+          tokenProvider: () async => _token,
+        ),
         timeout: const Duration(seconds: 3),
       );
       final offline = await RemoteLivelihoodRepository(
@@ -132,7 +137,7 @@ void main() {
     test(
       'without a login the server refuses, and we say so in plain terms',
       () async {
-        final anon = ApiClient(baseUrl: _base ?? '');
+        final anon = HostApiAdapter(ApiClient(baseUrl: _base ?? ''));
         await expectLater(
           RemoteLivelihoodRepository(anon, cache).report(),
           throwsA(
