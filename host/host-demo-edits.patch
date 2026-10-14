@@ -1,0 +1,78 @@
+diff --git a/vanmitra_tem/lib/main.dart b/vanmitra_tem/lib/main.dart
+index 7d4467a..336c5e2 100644
+--- a/vanmitra_tem/lib/main.dart
++++ b/vanmitra_tem/lib/main.dart
+@@ -7,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
+ import 'package:firebase_auth/firebase_auth.dart';
+ import 'package:connectivity_plus/connectivity_plus.dart';
+ import 'firebase_options.dart';
++import 'core/api/server_address.dart';
+ import 'data/local/hive_database.dart';
+ import 'models/notice.dart';
+ import 'providers/notices_provider.dart';
+@@ -43,6 +44,7 @@ void main() async {
+ 
+     // Initialize Hive local database
+     await HiveDatabase.initialize();
++    ServerAddress.load(); // the server address typed on the sign-in screen, if any
+     
+     // Request FCM permission and save token
+     try {
+diff --git a/vanmitra_tem/lib/screens/onboarding/registration_screen.dart b/vanmitra_tem/lib/screens/onboarding/registration_screen.dart
+index 3182e0e..0dc3155 100644
+--- a/vanmitra_tem/lib/screens/onboarding/registration_screen.dart
++++ b/vanmitra_tem/lib/screens/onboarding/registration_screen.dart
+@@ -1,11 +1,14 @@
+ import 'package:flutter/material.dart';
+ import 'package:flutter_riverpod/flutter_riverpod.dart';
++import '../../core/api/api_endpoints.dart';
++import '../../core/api/server_address.dart';
+ import '../../core/theme/app_colors.dart';
+ import '../../core/routes/app_router.dart';
+ import '../../models/user_role.dart';
+ import '../../providers/auth_provider.dart';
+ import '../../services/localization_service.dart';
+ import '../../services/api_auth_service.dart';
++import '../../widgets/server_address_dialog.dart';
+ 
+ class _VillageOption {
+   final String id;
+@@ -43,6 +46,17 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
+   void initState() {
+     super.initState();
+     _fetchVillages();
++    // a demo APK built without a server address asks for it the first time
++    if (!ApiEndpoints.isConfigured) {
++      WidgetsBinding.instance.addPostFrameCallback((_) => _editServer());
++    }
++  }
++
++  Future<void> _editServer() async {
++    await showServerAddressDialog(context);
++    if (!mounted) return;
++    setState(() {}); // the "Server" line shows the new address
++    _fetchVillages();
+   }
+ 
+   Future<void> _fetchVillages() async {
+@@ -471,7 +485,19 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
+                     ),
+                   ),
+                 ),
+-                const SizedBox(height: 32),
++                Center(
++                  child: TextButton.icon(
++                    onPressed: isLoading ? null : _editServer,
++                    icon: Icon(Icons.dns_outlined, size: 16, color: c.textSecondary),
++                    label: Text(
++                      ApiEndpoints.isConfigured
++                          ? 'Server: ${ServerAddress.describe(ApiEndpoints.serverRoot)}'
++                          : 'Server: not set',
++                      style: TextStyle(color: c.textSecondary, fontSize: 12),
++                    ),
++                  ),
++                ),
++                const SizedBox(height: 24),
+ 
+                 // ── Legal Notice ──────────────────────────────────────────
+                 Container(

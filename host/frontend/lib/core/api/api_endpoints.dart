@@ -1,0 +1,105 @@
+class ApiEndpoints {
+  // Server address from --dart-define=VANMITRA_API_BASE_URL (the same value the rest of
+  // the app uses, e.g. http://127.0.0.1:8000 for a phone over USB). Accepted with or
+  // without the trailing /api/v1. Default: the Android emulator's view of this PC.
+  // An explicit EMPTY value (--dart-define=VANMITRA_API_BASE_URL=) means "not set": the sign-in
+  // screen then asks for the address.
+  static const String _server = String.fromEnvironment(
+    'VANMITRA_API_BASE_URL',
+    defaultValue: 'http://10.0.2.2:8000',
+  );
+
+  /// The address typed on the sign-in screen and kept on the phone (see ServerAddress). It wins
+  /// over the compiled-in one, so a demo APK needs no rebuild when the server moves.
+  static String? serverOverride;
+
+  static String get _root {
+    final s = serverOverride ?? _server;
+    return s.endsWith('/') ? s.substring(0, s.length - 1) : s;
+  }
+
+  /// False when no address was compiled in and none was typed yet.
+  static bool get isConfigured => _root.isNotEmpty;
+
+  /// The server's address without the /api/v1 part ("" when not set).
+  static String get serverRoot =>
+      _root.endsWith('/api/v1') ? _root.substring(0, _root.length - '/api/v1'.length) : _root;
+
+  static String get baseUrl {
+    final root = _root;
+    return root.endsWith('/api/v1') ? root : '$root/api/v1';
+  }
+
+  // Health
+  static const String health = '/health';
+
+  // Auth
+  static const String login = '/auth/login';
+  static const String register = '/auth/register';
+  static const String me = '/me';
+
+  // Public
+  static const String villages = '/public/villages';
+
+  // Cases (Hub)
+  static const String myCases = '/cases/mine';
+  static String villageCases(String villageId) => '/villages/$villageId/cases';
+  static const String reviewQueue = '/review/queue';
+  static String caseDetails(String caseId) => '/cases/$caseId';
+
+  // Forms
+  static String formA(String caseId) => '/cases/$caseId/form-a';
+  static String formB(String caseId) => '/cases/$caseId/form-b';
+  static String formC(String caseId) => '/cases/$caseId/form-c';
+
+  // Workflow
+  static String submitCase(String caseId) => '/cases/$caseId/submit';
+  static String approveCase(String caseId) => '/cases/$caseId/approve';
+  static String returnCase(String caseId) => '/cases/$caseId/return';
+  static String rejectCase(String caseId) => '/cases/$caseId/reject';
+  static String caseHistory(String caseId) => '/cases/$caseId/history';
+
+  // FRC
+  static String frcCheck(String villageId) => '/villages/$villageId/frc/check';
+  static String frc(String villageId) => '/villages/$villageId/frc';
+  static String frcIntimation(String villageId) => '/villages/$villageId/frc/intimation';
+
+  // Gram Sabha
+  static String members(String villageId) => '/villages/$villageId/members';
+  static String claimCalls(String villageId) => '/villages/$villageId/claim-calls';
+  static String currentClaimCall(String villageId) => '/villages/$villageId/claim-calls/current';
+  static String extendClaimCall(String villageId) => '/villages/$villageId/claim-calls/current/extend';
+  static String meetings(String villageId) => '/villages/$villageId/meetings';
+  static String attendance(String meetingId) => '/meetings/$meetingId/attendance';
+  static String quorum(String meetingId) => '/meetings/$meetingId/quorum';
+  static String resolutions(String meetingId) => '/meetings/$meetingId/resolutions';
+
+  // Evidence
+  static const String media = '/media';
+  static String evidence(String caseId) => '/cases/$caseId/evidence';
+  static String verifyEvidence(String caseId, String evidenceId) => '/cases/$caseId/evidence/$evidenceId/verify';
+  static String readiness(String caseId) => '/cases/$caseId/readiness';
+
+  // Mapping
+  static String boundary(String caseId) => '/cases/$caseId/boundary';
+  static String landmarks(String caseId) => '/cases/$caseId/boundary/landmarks';
+  static String useZones(String caseId) => '/cases/$caseId/boundary/use-zones';
+  static String walks(String caseId) => '/cases/$caseId/boundary/walks';
+  static String boundaryVersions(String caseId) => '/cases/$caseId/boundary/versions';
+  static String disputes(String caseId) => '/cases/$caseId/disputes';
+
+  // Verification
+  static String verification(String caseId) => '/cases/$caseId/verification';
+
+  // Documents
+  static String acknowledgement(String caseId) => '/cases/$caseId/acknowledgement';
+  static String titleDraft(String caseId) => '/cases/$caseId/title-draft';
+  static String caseDocument(String caseId, String code) => '/cases/$caseId/documents/$code';
+
+  // Gram Sabha records
+  static String caseResolutions(String caseId) => '/cases/$caseId/resolutions';
+  static String approvalCheck(String caseId) => '/cases/$caseId/approval-check';
+  static String meeting(String meetingId) => '/meetings/$meetingId';
+  static String ledgerVerify(String villageId) => '/villages/$villageId/ledger/verify';
+  static String mediaFile(String mediaId) => '/media/$mediaId/file';
+}

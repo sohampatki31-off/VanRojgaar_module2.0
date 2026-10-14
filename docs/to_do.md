@@ -76,6 +76,19 @@ Reference: the user's screen recording of VanMitra (splash, language, sign-in wi
 - [ ] On the phone, by hand: sign in as a villager, Livelihood tab slides, hub cards open their screens, Ask AI from the header and the dashboard, Marathi labels, dark theme, smallest screen (Devanagari not clipped)
 - [ ] Host work is on the local branch `feature/module4-livelihood` of `vanMitraAI`, **uncommitted and not pushed** (that repository belongs to the team)
 
+### Stage 3c: a demo that works from one APK (option A: server online) 🔄
+Decision (user): put the server on Railway and let the APK find it by a typed address; a fully offline build (option B: report rules ported to Dart) is a later piece of work.
+- [x] "Use default coordinates" (19.7805, 73.2210) under "Type the coordinates"
+- [x] The app keeps a **server address** typed on the sign-in screen (with a Test button that says *Connected* or what is wrong); a release APK built with no address asks for it on first launch
+- [x] Lean server image `Dockerfile.api` + `railway.api.toml` (the old image loaded the AI models at start and ran out of memory on Railway); the whole backend suite also passes in a virtualenv with only the lean requirements
+- [x] `setup_module4_demo.py` (`--check` is read only) and `check_deploy.py`, tested with fakes; `smoke_mongo.py` now runs the real routes over the real Mongo code (logic proven over the in-memory store)
+- [x] Found: all five `lv_*` collections were **empty** in the database, so the Livelihood tab had nothing to build a report from until `setup_module4_demo --apply` is run
+- [x] `docs/DEPLOY_DEMO.md`: Atlas, Railway, checks, phone, cost, clean-up
+- [ ] ⛔ A person: allow the server in Atlas Network Access, deploy on Railway, run `setup_module4_demo --apply` (writes), run `smoke_mongo --apply` on a `*_test` database
+- [ ] The lean Dockerfile has **not** been built (Docker Desktop was not running here); the same requirements were tested in a plain virtualenv instead
+- [ ] On the phone: install the release APK, type the address, sign in, add details with the default coordinates, report, Ask, Schemes
+- [ ] The old "Model A" AI endpoints (AI draft, verify document) are not in the lean image; they ran out of memory on Railway before
+
 ### Stage 4: map of the plot and resources ⬜ (open decision Q20)
 - [ ] A small map of his plot and the resources around it, replacing typed coordinates with a pin picker
 - [ ] Google satellite tiles are **never** cached or served offline (rule L11)
