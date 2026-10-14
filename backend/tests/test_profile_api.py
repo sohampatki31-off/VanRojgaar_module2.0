@@ -6,7 +6,7 @@ import jwt
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.livelihood.auth import (
     DEV_OFFICER,
     DEV_VILLAGER,
@@ -99,7 +99,11 @@ def test_unknown_user_and_wrong_role(client: TestClient) -> None:
 
 
 def test_dev_users_are_off_by_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    # the TRUE default, ignoring any local .env (which a developer turns on for the phone demo)
     monkeypatch.delenv("VANMITRA_LIVELIHOOD_DEV_USERS", raising=False)
+    assert Settings(_env_file=None).livelihood_dev_users is False
+    # and with the switch off, a perfectly good token is still refused
+    monkeypatch.setenv("VANMITRA_LIVELIHOOD_DEV_USERS", "false")
     get_settings.cache_clear()
     try:
         app = create_app()

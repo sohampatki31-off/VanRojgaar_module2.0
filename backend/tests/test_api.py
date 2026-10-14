@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.main import create_app
 
 
@@ -14,12 +14,9 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
 
 
 def test_demo_endpoints_are_off_by_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    # the TRUE default, ignoring any local .env (which a developer turns on for the phone demo)
     monkeypatch.delenv("VANMITRA_LIVELIHOOD_DEMO_ENDPOINTS", raising=False)
-    get_settings.cache_clear()
-    try:
-        assert get_settings().livelihood_demo_endpoints is False
-    finally:
-        get_settings.cache_clear()
+    assert Settings(_env_file=None).livelihood_demo_endpoints is False
 
 
 def test_health(client: TestClient) -> None:
