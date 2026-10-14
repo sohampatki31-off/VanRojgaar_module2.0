@@ -65,6 +65,17 @@ Backend `GET /ideas/{code}`, `GET /schemes`; app screens `/livelihood/idea` (tap
 - [ ] Marathi wording of every new string is a machine draft
 - [ ] Real MongoDB: `lv_scheme` index and `seed_livelihood.py --apply` (a person runs them)
 
+### Stage 3b: the VanMitra look (host app) ✅ built; 🔄 phone check by hand
+Reference: the user's screen recording of VanMitra (splash, language, sign-in with demo logins, hero dashboard, floating bottom bar with the sliding saffron bubble).
+- [x] A sixth bottom tab, **Livelihood**, in the host's own bar; the bubble slides over six tabs; the admin home keeps five (`tabs` parameter)
+- [x] The tab opens the Livelihood hub: the host's green hero with the glass card, then cards in the host's card style (Ask AI, report, resources near me, schemes, change details, wildlife policy, delete my answers)
+- [x] Module 4 screens use the host frame (header with settings panel, notice strip, footer) through two hooks; the standalone shell is unchanged
+- [x] **Ask AI** button: a saffron sparkle in every Module 4 header, a floating button on the dashboard, the highlighted card on the hub. (Until the model is switched on, the Ask screen answers from the report with no model; see "The AI agent" below.)
+- [x] Tab labels follow the language (they were fixed English)
+- [x] Backend and app files re-synced into the host (Ask, Schemes, idea detail, AI settings off); host seed script also upserts the Sample schemes
+- [ ] On the phone, by hand: sign in as a villager, Livelihood tab slides, hub cards open their screens, Ask AI from the header and the dashboard, Marathi labels, dark theme, smallest screen (Devanagari not clipped)
+- [ ] Host work is on the local branch `feature/module4-livelihood` of `vanMitraAI`, **uncommitted and not pushed** (that repository belongs to the team)
+
 ### Stage 4: map of the plot and resources ⬜ (open decision Q20)
 - [ ] A small map of his plot and the resources around it, replacing typed coordinates with a pin picker
 - [ ] Google satellite tiles are **never** cached or served offline (rule L11)

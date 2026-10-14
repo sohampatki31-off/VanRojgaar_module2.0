@@ -151,3 +151,32 @@ Host checks: `ruff check app tests scripts` · `ruff format --check …` · `myp
 - New app dependency: `url_launcher` (the host already uses `^6.3.2`), plus an https `<queries>` entry in the Android manifest.
 - New settings (all optional, AI off by default): `livelihood_ai_enabled`, `anthropic_api_key`, `livelihood_ai_model`, `livelihood_ai_effort`, `livelihood_ai_max_tokens`, `livelihood_ai_timeout_s`, `livelihood_ai_daily_limit`. New optional package: `anthropic` (`backend/requirements-ai.txt`).
 - The host copy on `feature/module4-livelihood` does **not** have any of this yet (it was integrated before these slices); re-apply `host/` when merging.
+
+## Added later: the host look (Livelihood tab, host frame, Ask AI button)
+
+The user asked for Module 4 to look and move like VanMitra: a bottom-bar tab, the host's header
+and hero, and a visible AI button. Decision (replaces "no bottom-nav tab" in §3 and §5): **a sixth
+tab, "Livelihood"**, next to the five; nothing existing is removed.
+
+How it stays separate: the feature (`lib/features/livelihood/`) imports no host widget. It asks
+for the host's look through two hooks in `providers/host_hooks.dart`
+(`hostFrameBuilderProvider`, `hostHeroBuilderProvider`). Unset (the standalone shell) it draws its
+own plain green header. The host sets both in one new file.
+
+Host edits (7 existing files, 1 new; `host/host-ui-edits.patch` and `host/frontend/`):
+
+| File (in `vanmitra_tem/lib/` unless noted) | Change |
+|---|---|
+| `widgets/livelihood_host_frame.dart` **(new)** | the two hooks: `PortalFrameScaffold` as the frame, `VillagerHeroSection` + glass card as the hero; exported as `livelihoodHostOverrides` |
+| `main.dart` | `ProviderContainer(overrides: livelihoodHostOverrides)` (+ import) |
+| `widgets/common/bottom_nav_bar.dart` | `AppTab.livelihood`, `kCoreTabs` (the five), its case in the switch |
+| `widgets/common/animated_bottom_nav_bar.dart` | `tabs` parameter (default `kCoreTabs`, so the admin home is unchanged); the sliding bubble spreads over however many tabs there are; labels now come from `context.tr` (they were fixed English) |
+| `screens/home/villager_home_screen.dart` | `tabs: AppTab.values`, `LivelihoodHomeScreen(bottomNavigationBar: navBar)` as the sixth tab, the dashboard card switches to it, the "Ask AI" button on the dashboard |
+| `android/app/src/main/AndroidManifest.xml` | https `<queries>` entry (scheme "Open official page") |
+| `vanmitra_backend/app/config.py` | AI settings (all optional, **AI off**) |
+| `vanmitra_backend/scripts/seed_livelihood.py` | also upserts the Sample scheme rows (dry run by default; `[USER RUNS]`) |
+
+The "Ask AI" button is a saffron sparkle in every Module 4 header (not on the Ask screen itself),
+a floating button on the dashboard, and the highlighted card on the Livelihood tab. Until the AI
+model is switched on (docs/to_do.md) the Ask screen answers from the person's own report with
+no model; an answer written by a model carries its own "Written by an AI assistant" label.

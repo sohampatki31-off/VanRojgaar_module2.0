@@ -578,18 +578,17 @@ void main() {
 
   group('Ask words', () {
     // every key the backend can send must have words in both languages, or the app would show
-    // a raw key. Read from the backend source when it sits next to the app (standalone layout).
-    final engine = File('../backend/app/livelihood/domain/ask_engine.py');
+    // a raw key. Read from the backend source when it sits next to the app (standalone layout,
+    // or the host's vanmitra_backend).
+    final root = ['../backend', '../vanmitra_backend']
+        .where((d) => File('$d/app/livelihood/domain/ask_engine.py').existsSync())
+        .firstOrNull;
     final keys = <String>{};
-    if (engine.existsSync()) {
+    if (root != null) {
       final pattern = RegExp(r'"(ask\.[a-z_.]+)"');
-      for (final src in [
-        engine.readAsStringSync(),
-        File('../backend/app/livelihood/domain/ask_ai_guard.py')
-            .readAsStringSync(),
-        File('../backend/app/livelihood/domain/ask_topics.py')
-            .readAsStringSync(),
-      ]) {
+      for (final name in ['ask_engine', 'ask_ai_guard', 'ask_topics']) {
+        final src = File('$root/app/livelihood/domain/$name.py')
+            .readAsStringSync();
         keys.addAll(pattern.allMatches(src).map((m) => m.group(1)!));
       }
     }

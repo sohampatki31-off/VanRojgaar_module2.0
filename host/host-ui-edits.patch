@@ -1,0 +1,354 @@
+diff --git a/vanmitra_backend/app/config.py b/vanmitra_backend/app/config.py
+index b44d56a..fc919f3 100644
+--- a/vanmitra_backend/app/config.py
++++ b/vanmitra_backend/app/config.py
+@@ -2,7 +2,7 @@
+ 
+ from functools import lru_cache
+ 
+-from pydantic import model_validator
++from pydantic import SecretStr, model_validator
+ from pydantic_settings import BaseSettings, SettingsConfigDict
+ 
+ _DEV_JWT_SECRET = "dev-only-change-me"  # noqa: S105 (refused when env=production)
+@@ -50,6 +50,16 @@ class Settings(BaseSettings):
+     livelihood_default_radius_m: int = 5000  # "near" = 5 km
+     livelihood_max_radius_m: int = 10000
+ 
++    # The AI step of "Ask about your report". OFF unless switched on AND a key is set. The key
++    # lives only here (the server's environment), never in the app (docs/OPEN_QUESTIONS.md Q10).
++    livelihood_ai_enabled: bool = False
++    anthropic_api_key: SecretStr | None = None
++    livelihood_ai_model: str = "claude-opus-5-5"
++    livelihood_ai_effort: str = "low"  # low | medium | high
++    livelihood_ai_max_tokens: int = 4000
++    livelihood_ai_timeout_s: float = 25.0
++    livelihood_ai_daily_limit: int = 20  # AI answers per person per day (a cost cap)
++
+     @model_validator(mode="after")
+     def _no_dev_secret_in_production(self) -> "Settings":
+         if self.env == "production" and self.jwt_secret == _DEV_JWT_SECRET:
+diff --git a/vanmitra_tem/android/app/src/main/AndroidManifest.xml b/vanmitra_tem/android/app/src/main/AndroidManifest.xml
+index 5cd0320..0528c5b 100644
+--- a/vanmitra_tem/android/app/src/main/AndroidManifest.xml
++++ b/vanmitra_tem/android/app/src/main/AndroidManifest.xml
+@@ -48,5 +48,10 @@
+             <action android:name="android.intent.action.PROCESS_TEXT"/>
+             <data android:mimeType="text/plain"/>
+         </intent>
++        <!-- Module 4 (VanRozgar): "Open official page" on a scheme opens an https link -->
++        <intent>
++            <action android:name="android.intent.action.VIEW"/>
++            <data android:scheme="https"/>
++        </intent>
+     </queries>
+ </manifest>
+diff --git a/vanmitra_tem/lib/main.dart b/vanmitra_tem/lib/main.dart
+index 386a80b..7d4467a 100644
+--- a/vanmitra_tem/lib/main.dart
++++ b/vanmitra_tem/lib/main.dart
+@@ -12,6 +12,7 @@ import 'models/notice.dart';
+ import 'providers/notices_provider.dart';
+ import 'services/cloud_sync_service.dart';
+ import 'app.dart';
++import 'widgets/livelihood_host_frame.dart';
+ 
+ void main() async {
+   try {
+@@ -71,7 +72,7 @@ void main() async {
+     CloudSyncService().syncPendingItems();
+ 
+     // Seed two startup notices so the notice board has visible content
+-    final container = ProviderContainer();
++    final container = ProviderContainer(overrides: livelihoodHostOverrides);
+     final noticesNotifier = container.read(noticesProvider.notifier);
+     await noticesNotifier.loadNotices();
+     // Seed a default info notice if board is empty
+diff --git a/vanmitra_tem/lib/screens/home/villager_home_screen.dart b/vanmitra_tem/lib/screens/home/villager_home_screen.dart
+index dc92665..4d2b444 100644
+--- a/vanmitra_tem/lib/screens/home/villager_home_screen.dart
++++ b/vanmitra_tem/lib/screens/home/villager_home_screen.dart
+@@ -19,8 +19,9 @@ import '../../widgets/portal_frame_scaffold.dart';
+ import '../../features/case_hub/cases_list_screen.dart';
+ import '../../features/case_hub/new_claim.dart';
+ import '../../features/gram_sabha_records/gram_sabha_records_screen.dart';
+-import '../../features/livelihood/livelihood_routes.dart';
+ import '../../features/livelihood/livelihood_strings.dart';
++import '../../features/livelihood/screens/livelihood_home_screen.dart';
++import '../../features/livelihood/widgets/lv_ask_button.dart';
+ import '../profile/profile_screen.dart';
+ import 'alert_detail_screen.dart';
+ import 'boundary_map_screen.dart';
+@@ -42,6 +43,8 @@ class _VillagerHomeScreenState extends ConsumerState<VillagerHomeScreen> {
+     final navBar = AnimatedBottomNavBar(
+       currentTab: AppTab.values[_currentTab],
+       onTabSelected: (tab) => setState(() => _currentTab = tab.index),
++      // the five tabs plus Module 4's Livelihood tab (VanRozgar)
++      tabs: AppTab.values,
+     );
+ 
+     return IndexedStack(
+@@ -57,6 +60,8 @@ class _VillagerHomeScreenState extends ConsumerState<VillagerHomeScreen> {
+                 setState(() => _currentTab = AppTab.claims.index)),
+         _GramSabhaTab(bottomNavigationBar: navBar),
+         _MapTab(bottomNavigationBar: navBar),
++        // Module 4 (VanRozgar): resources near his land, work ideas, Ask AI, schemes
++        LivelihoodHomeScreen(bottomNavigationBar: navBar),
+       ],
+     );
+   }
+@@ -97,6 +102,8 @@ class _HomeTab extends ConsumerWidget {
+     return PortalFrameScaffold(
+       breadcrumbs: const [],
+       bottomNavigationBar: bottomNavigationBar,
++      // Module 4 (VanRozgar): the "Ask AI" button
++      floatingActionButton: const LvAskFab(),
+       body: Stack(
+         children: [
+           // 14 · VanMitra watermark, behind everything, unchanged.
+@@ -232,8 +239,8 @@ class _HomeTab extends ConsumerWidget {
+                           title: LivelihoodStrings.of(context).t('lv_card_title'),
+                           subtitle: LivelihoodStrings.of(context).t('lv_card_sub'),
+                           iconColor: AppColors.saffron,
+-                          onTap: () => Navigator.pushNamed(
+-                              context, LivelihoodRoutes.home),
++                          onTap: () =>
++                              onSwitchTab?.call(AppTab.livelihood.index),
+                         ),
+                         const SizedBox(height: AppSpacing.xl),
+ 
+diff --git a/vanmitra_tem/lib/widgets/common/animated_bottom_nav_bar.dart b/vanmitra_tem/lib/widgets/common/animated_bottom_nav_bar.dart
+index 870924a..6d55359 100644
+--- a/vanmitra_tem/lib/widgets/common/animated_bottom_nav_bar.dart
++++ b/vanmitra_tem/lib/widgets/common/animated_bottom_nav_bar.dart
+@@ -3,7 +3,10 @@ import 'package:flutter/services.dart';
+ import '../../core/routes/app_router.dart';
+ import '../../core/theme/app_colors.dart';
+ import '../../core/theme/app_typography.dart';
+-import 'bottom_nav_bar.dart' show AppTab;
++import '../../features/livelihood/livelihood_routes.dart';
++import '../../features/livelihood/livelihood_strings.dart';
++import '../../services/localization_service.dart';
++import 'bottom_nav_bar.dart' show AppTab, kCoreTabs;
+ 
+ /// Animated bottom navigation bar with:
+ /// - Sliding pill indicator under the active tab
+@@ -15,10 +18,15 @@ class AnimatedBottomNavBar extends StatefulWidget {
+   final AppTab currentTab;
+   final ValueChanged<AppTab>? onTabSelected;
+ 
++  /// The tabs to show, left to right. The five every role has by default; the villager home adds
++  /// Module 4's Livelihood tab. The sliding bubble spreads over however many there are.
++  final List<AppTab> tabs;
++
+   const AnimatedBottomNavBar({
+     super.key,
+     required this.currentTab,
+     this.onTabSelected,
++    this.tabs = kCoreTabs,
+   });
+ 
+   @override
+@@ -30,47 +38,59 @@ class _AnimatedBottomNavBarState extends State<AnimatedBottomNavBar>
+   late AnimationController _controller;
+   late Animation<double> _anim;
+ 
+-  static const List<_NavItemData> _items = [
++  static final List<_NavItemData> _items = [
+     _NavItemData(
+       tab: AppTab.dashboard,
+-      label: 'Dashboard',
++      label: (c) => c.tr('tab_dashboard'),
+       icon: Icons.dashboard_outlined,
+       activeIcon: Icons.dashboard_rounded,
+     ),
+     _NavItemData(
+       tab: AppTab.claims,
+-      label: 'Claims',
++      label: (c) => c.tr('tab_claims'),
+       icon: Icons.folder_shared_outlined,
+       activeIcon: Icons.folder_shared_rounded,
+     ),
+     _NavItemData(
+       tab: AppTab.profile,
+-      label: 'Profile',
++      label: (c) => c.tr('tab_profile'),
+       icon: Icons.account_circle_outlined,
+       activeIcon: Icons.account_circle_rounded,
+     ),
+     _NavItemData(
+       tab: AppTab.sabha,
+-      label: 'Gram Sabha',
++      label: (c) => c.tr('tab_gramsabha'),
+       icon: Icons.how_to_vote_outlined,
+       activeIcon: Icons.how_to_vote_rounded,
+     ),
+     _NavItemData(
+       tab: AppTab.map,
+-      label: 'Atlas Map',
++      label: (c) => c.tr('tab_map'),
+       icon: Icons.map_outlined,
+       activeIcon: Icons.map_rounded,
+     ),
++    _NavItemData(
++      tab: AppTab.livelihood,
++      label: (c) => LivelihoodStrings.of(c).t('lv_tab'),
++      icon: Icons.agriculture_outlined,
++      activeIcon: Icons.agriculture_rounded,
++    ),
+   ];
+ 
++  /// Where [tab] sits in the bar (0 = leftmost); the bubble slides to this slot.
++  double _slot(AppTab tab) {
++    final i = widget.tabs.indexOf(tab);
++    return (i < 0 ? 0 : i).toDouble();
++  }
++
+   @override
+   void initState() {
+     super.initState();
+     _controller = AnimationController(
+         vsync: this, duration: const Duration(milliseconds: 350));
+     _anim = Tween<double>(
+-      begin: widget.currentTab.index.toDouble(),
+-      end: widget.currentTab.index.toDouble(),
++      begin: _slot(widget.currentTab),
++      end: _slot(widget.currentTab),
+     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+   }
+ 
+@@ -80,7 +100,7 @@ class _AnimatedBottomNavBarState extends State<AnimatedBottomNavBar>
+     if (oldWidget.currentTab != widget.currentTab) {
+       _anim = Tween<double>(
+         begin: _anim.value,
+-        end: widget.currentTab.index.toDouble(),
++        end: _slot(widget.currentTab),
+       ).animate(
+           CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+       _controller.forward(from: 0.0);
+@@ -116,6 +136,9 @@ class _AnimatedBottomNavBarState extends State<AnimatedBottomNavBar>
+       case AppTab.profile:
+         Navigator.pushNamed(context, AppRouter.profile);
+         break;
++      case AppTab.livelihood:
++        Navigator.pushNamed(context, LivelihoodRoutes.home);
++        break;
+     }
+   }
+ 
+@@ -131,7 +154,8 @@ class _AnimatedBottomNavBarState extends State<AnimatedBottomNavBar>
+         child: LayoutBuilder(
+           builder: (context, constraints) {
+             final width = constraints.maxWidth;
+-            final tabWidth = width / 5;
++            final count = widget.tabs.length;
++            final tabWidth = width / count;
+ 
+             return Stack(
+               clipBehavior: Clip.none,
+@@ -144,6 +168,7 @@ class _AnimatedBottomNavBarState extends State<AnimatedBottomNavBar>
+                     return CustomPaint(
+                       painter: _NavCurvePainter(
+                         animValue: _anim.value,
++                        count: count,
+                         bgColor: c.navBg,
+                         borderColor: c.navBorder.withValues(alpha: 0.5),
+                         borderWidth: isDark ? 1.0 : 0.5,
+@@ -189,7 +214,9 @@ class _AnimatedBottomNavBarState extends State<AnimatedBottomNavBar>
+                   height: 68,
+                   child: Row(
+                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+-                    children: _items.map((item) {
++                    children: _items
++                        .where((item) => widget.tabs.contains(item.tab))
++                        .map((item) {
+                       final isSelected = widget.currentTab == item.tab;
+                       return Expanded(
+                         child: _AnimatedNavItem(
+@@ -212,7 +239,7 @@ class _AnimatedBottomNavBarState extends State<AnimatedBottomNavBar>
+ 
+ class _NavItemData {
+   final AppTab tab;
+-  final String label;
++  final String Function(BuildContext context) label;
+   final IconData icon;
+   final IconData activeIcon;
+ 
+@@ -226,6 +253,7 @@ class _NavItemData {
+ 
+ class _NavCurvePainter extends CustomPainter {
+   final double animValue;
++  final int count;
+   final Color bgColor;
+   final Color borderColor;
+   final double borderWidth;
+@@ -233,6 +261,7 @@ class _NavCurvePainter extends CustomPainter {
+ 
+   _NavCurvePainter({
+     required this.animValue,
++    required this.count,
+     required this.bgColor,
+     required this.borderColor,
+     required this.borderWidth,
+@@ -242,7 +271,7 @@ class _NavCurvePainter extends CustomPainter {
+   @override
+   void paint(Canvas canvas, Size size) {
+     final host = Offset.zero & size;
+-    final notchCenterX = size.width * (animValue + 0.5) / 5;
++    final notchCenterX = size.width * (animValue + 0.5) / count;
+     final guest = Rect.fromCircle(center: Offset(notchCenterX, 4), radius: 34);
+ 
+     final shape = AutomaticNotchedShape(
+@@ -272,6 +301,7 @@ class _NavCurvePainter extends CustomPainter {
+   @override
+   bool shouldRepaint(covariant _NavCurvePainter old) {
+     return old.animValue != animValue ||
++        old.count != count ||
+         old.bgColor != bgColor ||
+         old.borderColor != borderColor ||
+         old.borderWidth != borderWidth ||
+@@ -335,7 +365,7 @@ class _AnimatedNavItem extends StatelessWidget {
+                 fontSize: isActive ? 10.5 : 10,
+               ),
+               child: Text(
+-                data.label,
++                data.label(context),
+                 maxLines: 1,
+                 overflow: TextOverflow.visible,
+                 textAlign: TextAlign.center,
+diff --git a/vanmitra_tem/lib/widgets/common/bottom_nav_bar.dart b/vanmitra_tem/lib/widgets/common/bottom_nav_bar.dart
+index 85e44df..be784a0 100644
+--- a/vanmitra_tem/lib/widgets/common/bottom_nav_bar.dart
++++ b/vanmitra_tem/lib/widgets/common/bottom_nav_bar.dart
+@@ -1,9 +1,20 @@
+ import 'package:flutter/material.dart';
+ import '../../core/routes/app_router.dart';
++import '../../features/livelihood/livelihood_routes.dart';
+ import '../../core/theme/app_colors.dart';
+ import '../../core/theme/app_typography.dart';
+ 
+-enum AppTab { dashboard, claims, profile, sabha, map }
++enum AppTab { dashboard, claims, profile, sabha, map, livelihood }
++
++/// The five tabs every role has. A screen that adds Module 4's Livelihood tab passes
++/// [AppTab.values] (or its own list) to the animated bar instead.
++const List<AppTab> kCoreTabs = [
++  AppTab.dashboard,
++  AppTab.claims,
++  AppTab.profile,
++  AppTab.sabha,
++  AppTab.map,
++];
+ 
+ /// Universal BottomNavBar featuring Saffron fill active icons for sunlight legibility
+ /// and consistent 5-tab architectural navigation.
+@@ -112,6 +123,9 @@ class BottomNavBar extends StatelessWidget {
+       case AppTab.profile:
+         Navigator.pushNamed(context, AppRouter.profile);
+         break;
++      case AppTab.livelihood:
++        Navigator.pushNamed(context, LivelihoodRoutes.home);
++        break;
+     }
+   }
+ }

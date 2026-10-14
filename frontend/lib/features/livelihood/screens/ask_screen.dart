@@ -104,6 +104,7 @@ class _AskScreenState extends ConsumerState<AskScreen> {
 
     return LvScaffold(
       title: s.t('ask.title'),
+      showAsk: false,
       actions: [
         IconButton(
           tooltip: s.t('ask.clear'),
