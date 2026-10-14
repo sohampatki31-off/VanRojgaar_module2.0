@@ -2,13 +2,48 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/api/api_client.dart';
 import '../core/theme/app_colors.dart';
+import '../features/livelihood/data/livelihood_cache.dart';
+import '../features/livelihood/data/livelihood_repository.dart';
+import '../features/livelihood/data/profile_repository.dart';
 import '../features/livelihood/livelihood_routes.dart';
 import '../features/livelihood/providers/host_hooks.dart';
+import '../features/livelihood/providers/livelihood_providers.dart';
+import '../features/livelihood/providers/profile_providers.dart';
 
 // THROWAWAY SHELL. It exists only so the feature can run on its own: a theme, a language and a
-// theme switch, and the routes. It is deleted at merge; the host app supplies all of this
-// (docs/INTEGRATION.md). Nothing under lib/features/livelihood/ imports from here.
+// theme switch, the routes, and the wiring of the repositories. It is deleted at merge; the host
+// app supplies all of this (docs/INTEGRATION.md). Nothing under lib/features/livelihood/ imports
+// from here.
+//
+// Two ways to run it:
+//   * DEMO (no server): `flutter run`. Reads the bundled SAMPLE report; details stay in memory.
+//   * LIVE: `flutter run --dart-define=VANMITRA_API_BASE_URL=http://10.0.2.2:8010
+//           --dart-define=VANMITRA_DEV_TOKEN=<token from backend/scripts/dev_token.py>`
+//     Talks to the backend, and keeps his details and last report on the phone (encrypted).
+
+const _apiBaseUrl = String.fromEnvironment('VANMITRA_API_BASE_URL');
+const _devToken = String.fromEnvironment('VANMITRA_DEV_TOKEN');
+
+/// True when a server address and a login token were supplied.
+bool get shellIsLive => _apiBaseUrl.isNotEmpty && _devToken.isNotEmpty;
+
+/// The overrides that connect the feature to the server, or none for the demo.
+List<Override> liveOverrides(CacheStore cache, {ApiClient? client}) {
+  final api =
+      client ??
+      ApiClient(baseUrl: _apiBaseUrl, tokenProvider: () async => _devToken);
+  final livelihoodCache = LivelihoodCache(cache);
+  return [
+    livelihoodRepositoryProvider.overrideWithValue(
+      RemoteLivelihoodRepository(api, livelihoodCache),
+    ),
+    profileRepositoryProvider.overrideWithValue(
+      OfflineFirstProfileRepository(api, livelihoodCache),
+    ),
+  ];
+}
 
 final _localeProvider = StateProvider<Locale>(
   (ref) => const Locale('mr'),

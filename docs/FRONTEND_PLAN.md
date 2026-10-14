@@ -245,12 +245,21 @@ The host uses a hand-written `AppLocalizations` map (`services/localization_serv
 - [x] Large-text (2×) overflow fixed; contrast: saffron text uses a darker orange on light surfaces (`lvEmphasis`)
 - [x] Throwaway shell (`lib/shell/`): theme, language and theme switch. Deleted at merge
 
-**Slice 2: next**
-- [ ] S2 intake form (5 steps) with unit conversion, S3 location picker
-- [ ] `Remote…` repository on the host `ApiClient` (demo route first, then the real routes)
-- [ ] Hive cache of the last report; offline line
-- [ ] Dashboard card + route registration in the host
-- [ ] Idea detail screen; delete-my-answers
+**Modules 2 and 3: done (branch `frontend`)**: 74 tests + 3 live-contract tests; `flutter analyze` clean
+- [x] S2 intake form: 5 steps (land with acre/guntha/hectare conversion, animals, what he owns, past work and money, location by GPS / typed coordinates / village centre); every question optional; only a malformed answer is refused
+- [x] `LivelihoodProfile` mirrors the backend request; local profile controller; "Change my details"; **Delete my answers** with confirmation
+- [x] Host-style `ApiClient` + `ApiException`; `RemoteLivelihoodRepository` (live report, last saved report as a fallback, with a quiet "showing your last saved report" banner); a refusal (4xx) is never hidden behind an old report
+- [x] `OfflineFirstProfileRepository`: a save always succeeds on the phone and is sent later; a refused save is not kept; a **delete is retried until it reaches the server** (rule L8)
+- [x] Encrypted Hive cache (key in the Android Keystore) behind a `CacheStore` interface; damaged entries are dropped, never shown
+- [x] Plain-language error mapping (`errorMessageKey`), never a raw code; 10 new en/mr strings for failures and sync
+- [x] Live contract test: the real client and repositories against the running backend (save, second phone, report parse incl. Marathi, offline fallback, delete)
+- [x] Home no longer builds a report just by opening (it loads details only)
+
+**Next**
+- [ ] S3 map pin picker (module 3 uses typed coordinates or GPS)
+- [ ] Idea detail screen; a scheduled sync retry (today a pending change is sent on the next open)
+- [ ] Dashboard card + route registration in the host; swap the shell's `ApiClient` and token for the host's
+- [ ] Run on a real Android phone and an emulator (not yet done: the Hive/Keystore path and GPS are only unit-tested)
 
 **Later**
 - [ ] Weather chart with real data, schemes, Ask screen, Hindi, FRC confirm flow, offline refresh banner

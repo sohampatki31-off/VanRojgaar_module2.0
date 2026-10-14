@@ -9,23 +9,36 @@ import '../livelihood_routes.dart';
 import '../livelihood_strings.dart';
 import '../providers/livelihood_providers.dart';
 import '../providers/profile_providers.dart';
-import '../widgets/lv_badges.dart';
 import '../widgets/lv_colors.dart';
 import '../widgets/lv_scaffold.dart';
 import '../widgets/report_parts.dart';
 
 /// Entry screen. It shows where he stands: no details yet (add them), or details saved (see the
 /// report, change them, or delete them).
-class LivelihoodHomeScreen extends ConsumerWidget {
+class LivelihoodHomeScreen extends ConsumerStatefulWidget {
   const LivelihoodHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LivelihoodHomeScreen> createState() =>
+      _LivelihoodHomeScreenState();
+}
+
+class _LivelihoodHomeScreenState extends ConsumerState<LivelihoodHomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load what is saved (this also sends anything that was waiting for a connection). The home
+    // screen does NOT ask for a report: building one is the report screen's job.
+    Future.microtask(() => ref.read(profileProvider.notifier).load());
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final s = LivelihoodStrings.of(context);
     final c = context.colors;
-    final report = ref.watch(reportProvider);
     final profile = ref.watch(profileProvider);
     final hasDetails = profile?.hasDetails ?? false;
+    final pending = ref.watch(syncPendingProvider);
 
     return LvScaffold(
       title: s.t('lv_card_title'),
@@ -59,24 +72,6 @@ class LivelihoodHomeScreen extends ConsumerWidget {
                     color: c.textSecondary,
                   ),
                 ),
-                report.maybeWhen(
-                  data: (r) => r.isSampleData
-                      ? Padding(
-                          padding: const EdgeInsets.only(top: AppSpacing.md),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SampleChip(),
-                              NoteLine(
-                                s.t('lv_sample_note'),
-                                icon: Icons.science_outlined,
-                              ),
-                            ],
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                  orElse: () => const SizedBox.shrink(),
-                ),
               ],
             ),
           ),
@@ -94,17 +89,27 @@ class LivelihoodHomeScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  hasDetails
+                  pending
+                      ? Icons.sync_rounded
+                      : hasDetails
                       ? Icons.check_circle_outline_rounded
                       : Icons.edit_note_rounded,
-                  color: hasDetails
+                  color: pending
+                      ? context.lvEmphasis
+                      : hasDetails
                       ? AppColors.successGreen
                       : context.lvEmphasis,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
-                    s.t(hasDetails ? 'lv_details_saved' : 'lv_no_details_yet'),
+                    s.t(
+                      pending
+                          ? 'lv_sync_pending'
+                          : hasDetails
+                          ? 'lv_details_saved'
+                          : 'lv_no_details_yet',
+                    ),
                     style: AppTypography.body.copyWith(color: c.textPrimary),
                   ),
                 ),
@@ -184,6 +189,9 @@ class LivelihoodHomeScreen extends ConsumerWidget {
     );
     if (ok == true) {
       await ref.read(profileProvider.notifier).delete();
+      ref.invalidate(
+        reportProvider,
+      ); // a report made from his answers must not linger
       messenger.showSnackBar(SnackBar(content: Text(s.t('lv_deleted'))));
     }
   }

@@ -88,6 +88,20 @@ const Map<String, Map<String, String>> _text = {
         'This place is outside Maharashtra. Check the numbers.',
     'lv_err_coords': 'Enter both the latitude and the longitude.',
     'lv_save_failed': 'We could not save your details. Try again.',
+    'lv_showing_saved':
+        'Showing your last saved report. We could not refresh it just now.',
+    'lv_sync_pending':
+        'Saved on this phone. It will be sent when you are online.',
+    'lv_err_offline': 'No internet right now. Try again when you are online.',
+    'lv_err_signin': 'Please sign in again to see your report.',
+    'lv_err_role': 'This part is for villagers and Gram Sabha members.',
+    'lv_err_no_village': 'Your account is not linked to a village yet. Ask the Gram Sabha office.',
+    'lv_err_data':
+        'The resource data is not ready yet. Please try again later.',
+    'lv_err_radius': 'That distance is not allowed. Use up to 10 km.',
+    'lv_err_server':
+        'The server had a problem. Please try again in a little while.',
+    'lv_err_generic': 'Something went wrong. Please try again.',
     'w_paddy': 'Paddy',
     'w_millets': 'Millets',
     'w_pulses': 'Pulses',
@@ -344,6 +358,22 @@ const Map<String, Map<String, String>> _text = {
     'lv_err_outside_mh': 'हे ठिकाण महाराष्ट्राबाहेर आहे. संख्या तपासा.',
     'lv_err_coords': 'अक्षांश आणि रेखांश दोन्ही भरा.',
     'lv_save_failed': 'तुमची माहिती जतन करता आली नाही. पुन्हा प्रयत्न करा.',
+    'lv_showing_saved':
+        'तुमचा शेवटचा जतन केलेला अहवाल दाखवत आहे. तो आत्ता ताजा करता आला नाही.',
+    'lv_sync_pending':
+        'या फोनवर जतन केले आहे. इंटरनेट मिळाल्यावर ते पाठवले जाईल.',
+    'lv_err_offline':
+        'आत्ता इंटरनेट नाही. इंटरनेट मिळाल्यावर पुन्हा प्रयत्न करा.',
+    'lv_err_signin': 'तुमचा अहवाल पाहण्यासाठी कृपया पुन्हा साइन इन करा.',
+    'lv_err_role': 'हा भाग गावकरी आणि ग्रामसभा सदस्यांसाठी आहे.',
+    'lv_err_no_village':
+        'तुमचे खाते अजून गावाशी जोडलेले नाही. ग्रामसभा कार्यालयाला विचारा.',
+    'lv_err_data':
+        'साधनांची माहिती अजून तयार नाही. कृपया नंतर पुन्हा प्रयत्न करा.',
+    'lv_err_radius': 'हे अंतर चालत नाही. १० किमी पर्यंत वापरा.',
+    'lv_err_server':
+        'सर्व्हरमध्ये अडचण आली. कृपया थोड्या वेळाने पुन्हा प्रयत्न करा.',
+    'lv_err_generic': 'काहीतरी चुकले. कृपया पुन्हा प्रयत्न करा.',
     'w_paddy': 'भात',
     'w_millets': 'नाचणी, वरी',
     'w_pulses': 'कडधान्ये',

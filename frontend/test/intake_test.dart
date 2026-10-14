@@ -17,11 +17,13 @@ import 'package:vanmitra_rozgar/features/livelihood/screens/livelihood_home_scre
 
 class _ReportRepo implements LivelihoodRepository {
   @override
-  Future<Report> latestReport() => Future.value(
-    Report.fromJson(
-      jsonDecode(
-        File('assets/livelihood/sample_report.json').readAsStringSync(),
-      ) as Map<String, dynamic>,
+  Future<ReportResult> report({int? radiusM}) => Future.value(
+    ReportResult(
+      Report.fromJson(
+        jsonDecode(
+          File('assets/livelihood/sample_report.json').readAsStringSync(),
+        ) as Map<String, dynamic>,
+      ),
     ),
   );
 }

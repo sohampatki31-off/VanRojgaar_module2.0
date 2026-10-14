@@ -22,7 +22,8 @@ Report _sample() {
 /// widget-test clock does not provide; it is tested separately below.)
 class _FakeRepository implements LivelihoodRepository {
   @override
-  Future<Report> latestReport() => Future.value(_sample());
+  Future<ReportResult> report({int? radiusM}) =>
+      Future.value(ReportResult(_sample()));
 }
 
 Future<void> _pump(
@@ -67,10 +68,11 @@ void main() {
   group('bundled repository', () {
     testWidgets('reads the sample report from the app bundle', (tester) async {
       final report = await tester.runAsync(
-        () => const SeedLivelihoodRepository().latestReport(),
+        () => const SeedLivelihoodRepository().report(),
       );
       expect(report, isNotNull);
-      expect(report!.isSampleData, isTrue);
+      expect(report!.report.isSampleData, isTrue);
+      expect(report.fromCache, isFalse);
     });
   });
 

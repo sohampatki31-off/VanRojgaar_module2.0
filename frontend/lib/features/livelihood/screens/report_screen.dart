@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../data/error_mapping.dart';
 import '../livelihood_routes.dart';
 import '../livelihood_strings.dart';
 import '../models/report.dart';
@@ -31,12 +32,13 @@ class ReportScreen extends ConsumerWidget {
       title: s.t('lv_title'),
       body: report.when(
         loading: () => _Loading(s.t('lv_loading')),
-        error: (_, _) => _Failed(
-          message: s.t('lv_load_failed'),
+        error: (e, _) => _Failed(
+          message: s.t(errorMessageKey(e)),
           retry: s.t('lv_retry'),
           onRetry: () => ref.invalidate(reportProvider),
         ),
-        data: (r) => _ReportBody(r),
+        data: (r) =>
+            _ReportBody(r.report, fromCache: r.fromCache, savedAt: r.savedAt),
       ),
     );
   }
@@ -111,9 +113,13 @@ class _Failed extends StatelessWidget {
 }
 
 class _ReportBody extends StatelessWidget {
-  const _ReportBody(this.report);
+  const _ReportBody(this.report, {this.fromCache = false, this.savedAt});
 
   final Report report;
+
+  /// True when this is the last report saved on the phone, because the server could not be reached.
+  final bool fromCache;
+  final DateTime? savedAt;
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +136,10 @@ class _ReportBody extends StatelessWidget {
         AppSpacing.xxl,
       ),
       children: [
+        if (fromCache) ...[
+          _OfflineBanner(savedAt),
+          const SizedBox(height: AppSpacing.md),
+        ],
         _HeaderCard(report),
 
         // where he is heading: what he asked for, so it comes first
@@ -228,6 +238,47 @@ class _ReportBody extends StatelessWidget {
         ..add(const SizedBox(height: AppSpacing.sm));
     }
     return out;
+  }
+}
+
+/// "Showing your last saved report": a quiet line, not a blocking dialog (the host's rule).
+class _OfflineBanner extends StatelessWidget {
+  const _OfflineBanner(this.savedAt);
+
+  final DateTime? savedAt;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = LivelihoodStrings.of(context);
+    final c = context.colors;
+    final when = savedAt?.toLocal();
+    final date = when == null
+        ? ''
+        : ' (${when.day.toString().padLeft(2, '0')}-${when.month.toString().padLeft(2, '0')}-${when.year})';
+    return Semantics(
+      container: true,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: c.sunkenBg,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: c.border),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.cloud_off_rounded, size: 20, color: c.textSecondary),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                '${s.t('lv_showing_saved')}$date',
+                style: AppTypography.body.copyWith(color: c.textPrimary),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

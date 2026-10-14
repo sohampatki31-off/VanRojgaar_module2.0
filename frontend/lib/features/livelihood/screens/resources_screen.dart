@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../data/error_mapping.dart';
 import '../livelihood_strings.dart';
 import '../models/report.dart';
 import '../providers/livelihood_providers.dart';
@@ -25,7 +26,7 @@ class ResourcesScreen extends ConsumerWidget {
     return LvScaffold(
       title: report.maybeWhen(
         data: (r) => s.t('lv_sec_resources', {
-          'radius_km': LivelihoodStrings.km(r.header.radiusM),
+          'radius_km': LivelihoodStrings.km(r.report.header.radiusM),
         }),
         orElse: () => s.t('lv_title'),
       ),
@@ -33,8 +34,14 @@ class ResourcesScreen extends ConsumerWidget {
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppColors.saffron),
         ),
-        error: (_, _) => Center(child: Text(s.t('lv_load_failed'))),
-        data: (r) {
+        error: (e, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Text(s.t(errorMessageKey(e)), textAlign: TextAlign.center),
+          ),
+        ),
+        data: (result) {
+          final r = result.report;
           final items = filter == null
               ? r.resources
               : r.resources.where((x) => x.label == filter).toList();

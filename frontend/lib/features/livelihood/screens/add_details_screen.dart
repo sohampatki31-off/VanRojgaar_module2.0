@@ -6,10 +6,12 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../data/error_mapping.dart';
 import '../data/location_service.dart';
 import '../livelihood_strings.dart';
 import '../models/profile.dart';
 import '../providers/intake_provider.dart';
+import '../providers/livelihood_providers.dart';
 import '../providers/profile_providers.dart';
 import '../widgets/intake_widgets.dart';
 import '../widgets/lv_scaffold.dart';
@@ -149,9 +151,20 @@ class AddDetailsScreen extends ConsumerWidget {
       await ref
           .read(profileProvider.notifier)
           .save(ref.read(intakeProvider).toProfile());
+      ref.invalidate(
+        reportProvider,
+      ); // his next look builds a report from the new details
       navigator.pop();
-    } catch (_) {
-      messenger.showSnackBar(SnackBar(content: Text(s.t('lv_save_failed'))));
+    } catch (e) {
+      // a plain-language reason (not signed in, outside Maharashtra...), never a raw code
+      final key = errorMessageKey(e);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            key == 'lv_err_generic' ? s.t('lv_save_failed') : s.t(key),
+          ),
+        ),
+      );
     }
   }
 }
