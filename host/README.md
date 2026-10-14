@@ -37,3 +37,12 @@ The host side lives on the local branch `feature/module4-livelihood` of `vanMitr
 
 Step-by-step for putting the server online: `docs/DEPLOY_DEMO.md` (also in the host repo).
 
+## Offline demo APKs (`docs/DEMO_APKS.md`)
+
+| File | Goes to (in `vanMitraAI/vanmitra_tem`) | What |
+|---|---|---|
+| `frontend/lib/demo/*.dart` | `lib/demo/` | `DemoMode` (the personas), `DemoBackend` (answers the app's API calls from bundled data), `DemoLivelihood` (Module 4) |
+| `frontend/assets/demo/livelihood_demo.json` | `assets/demo/` | the mock data, made by `backend/scripts/export_demo_fixtures.py` in this repo |
+| `frontend/test/demo_backend_test.dart` | `test/` | its tests, checked against the app's real models |
+| edits to `core/api/api_client.dart`, `screens/onboarding/registration_screen.dart`, `screens/home/villager_home_screen.dart`, `widgets/livelihood_host_frame.dart`, `pubspec.yaml` | same | the demo hooks (see git history of the host branch) |
+
