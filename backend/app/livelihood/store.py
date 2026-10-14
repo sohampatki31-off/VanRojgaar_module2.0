@@ -21,7 +21,8 @@ from shapely.geometry import shape
 
 from .ask_schemas import ChatTurn
 from .schemas import Idea, ProfileIn, ReportOut, ResourceRecord, VillageGeo
-from .seed import load_demo_village, load_ideas, load_sample_dataset
+from .scheme_schemas import SchemeRecord
+from .seed import load_demo_village, load_ideas, load_sample_dataset, load_schemes
 from .service import DatasetMeta
 
 KEEP_REPORTS = 5  # the latest few per user; older ones are removed
@@ -80,6 +81,10 @@ class LivelihoodStore(Protocol):
     def get_village(self, village_id: str) -> VillageGeo | None: ...
 
     def list_ideas(self) -> list[Idea]: ...
+
+    def list_schemes(self) -> list[SchemeRecord]:
+        """The scheme register (links to official pages only). Empty if none is loaded."""
+        ...
 
     def dataset_meta(self) -> DatasetMeta | None:
         """The newest resource dataset, or None if none is loaded."""
@@ -172,6 +177,9 @@ class InMemoryStore:
 
     def list_ideas(self) -> list[Idea]:
         return list(load_ideas())
+
+    def list_schemes(self) -> list[SchemeRecord]:
+        return list(load_schemes())
 
     def dataset_meta(self) -> DatasetMeta | None:
         return _dataset_of(self._header)

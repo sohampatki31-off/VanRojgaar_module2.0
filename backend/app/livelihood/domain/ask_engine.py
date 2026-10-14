@@ -281,6 +281,27 @@ def _removed(report: ReportOut, _lib: Sequence[Idea]) -> AnswerOut:
     )
 
 
+def _schemes(report: ReportOut, _lib: Sequence[Idea]) -> AnswerOut:
+    """Which register rows relate to his ideas. Only counts and names: we cannot say whether he
+    qualifies, and we show no amounts, so there is nothing else to say."""
+    related = [i for i in report.ideas if i.schemes_count > 0]
+    if not related:
+        return not_in_report(report, topics.SCHEMES, "ask.nir.schemes")
+    return _answer(
+        report,
+        topics.SCHEMES,
+        Reason(key="ask.schemes.header"),
+        [
+            Reason(
+                key="ask.item.idea_schemes",
+                params={**_named(i), "count": i.schemes_count},
+            )
+            for i in related
+        ],
+        [PART_IDEAS],
+    )
+
+
 def idea_answer(report: ReportOut, library: Sequence[Idea], code: str) -> AnswerOut:
     """ "Trying another idea": what the report already found out about it, or an honest 'not
     checked'. Nothing is invented for an idea the report did not evaluate."""
@@ -333,6 +354,7 @@ _BUILDERS: dict[str, Callable[[ReportOut, Sequence[Idea]], AnswerOut]] = {
     topics.WEATHER: _weather,
     topics.FLOOD: _flood,
     topics.REMOVED: _removed,
+    topics.SCHEMES: _schemes,
 }
 
 
@@ -347,9 +369,6 @@ def answer_topic(intent: topics.Intent, report: ReportOut, library: Sequence[Ide
     """Build the answer for a topic, then number-check it."""
     if intent.topic == topics.IDEA and intent.idea_code:
         built = idea_answer(report, library, intent.idea_code)
-    elif intent.topic == topics.SCHEMES:
-        # schemes are not in the report yet (stage 3 adds a hand-checked register)
-        built = not_in_report(report, topics.SCHEMES, "ask.nir.schemes")
     elif intent.topic == topics.OUTSIDE:
         built = not_in_report(report, topics.OUTSIDE, "ask.nir.outside")
     elif intent.topic == topics.IDEA_UNCHECKED:
@@ -405,6 +424,8 @@ def build_chips(report: ReportOut) -> list[ChipOut]:
         add("own")
     if report.weather is not None:
         add("weather")
+    if any(i.schemes_count > 0 for i in report.ideas):
+        add("schemes")
     if report.removed:
         add("removed")
     return chips
@@ -418,6 +439,4 @@ def respond_chip(chip_id: str, report: ReportOut, library: Sequence[Idea]) -> An
         return answer_topic(topics.Intent(topics.IDEA, code), report, library) if code else None
     if chip_id in _BUILDERS:
         return answer_topic(topics.Intent(chip_id), report, library)
-    if chip_id == topics.SCHEMES:
-        return answer_topic(topics.Intent(topics.SCHEMES), report, library)
     return None

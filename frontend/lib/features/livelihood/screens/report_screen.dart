@@ -204,7 +204,16 @@ class _ReportBody extends StatelessWidget {
         ],
 
         const SizedBox(height: AppSpacing.md),
-        _AskEntry(
+        _EntryRow(
+          icon: Icons.account_balance_outlined,
+          title: s.t('sch.entry'),
+          subtitle: s.t('sch.entry_sub'),
+          onTap: () =>
+              Navigator.of(context).pushNamed(LivelihoodRoutes.schemes),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _EntryRow(
+          icon: Icons.forum_outlined,
           title: s.t('ask.entry'),
           subtitle: s.t('ask.entry_sub'),
           onTap: () => Navigator.of(context).pushNamed(LivelihoodRoutes.ask),
@@ -248,14 +257,16 @@ class _ReportBody extends StatelessWidget {
   }
 }
 
-/// The way into "Ask about your report" (PDF part 8): a full-width row, 56 dp tall.
-class _AskEntry extends StatelessWidget {
-  const _AskEntry({
+/// A way into another screen (Ask about your report, Schemes): a full-width row, 56 dp tall.
+class _EntryRow extends StatelessWidget {
+  const _EntryRow({
+    required this.icon,
     required this.title,
     required this.subtitle,
     required this.onTap,
   });
 
+  final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
@@ -278,7 +289,7 @@ class _AskEntry extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const Icon(Icons.forum_outlined, color: AppColors.forestSage),
+              Icon(icon, color: AppColors.forestSage),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
@@ -469,40 +480,45 @@ class _WhyNot extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           for (final r in items)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    r.gate == null
-                        ? Icons.hourglass_bottom_rounded
-                        : Icons.block_rounded,
-                    size: 18,
-                    color:
-                        r.gate == null ? c.textSecondary : AppColors.alertRed,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          r.name(s.lang),
-                          style: AppTypography.subtitle.copyWith(
-                            color: c.textPrimary,
-                          ),
-                        ),
-                        Text(
-                          s.reason(r.reason),
-                          style: AppTypography.caption.copyWith(
-                            color: c.textSecondary,
-                          ),
-                        ),
-                      ],
+            InkWell(
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              onTap: () => Navigator.of(context)
+                  .pushNamed(LivelihoodRoutes.idea, arguments: r.code),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      r.gate == null
+                          ? Icons.hourglass_bottom_rounded
+                          : Icons.block_rounded,
+                      size: 18,
+                      color:
+                          r.gate == null ? c.textSecondary : AppColors.alertRed,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            r.name(s.lang),
+                            style: AppTypography.subtitle.copyWith(
+                              color: c.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            s.reason(r.reason),
+                            style: AppTypography.caption.copyWith(
+                              color: c.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
         ],

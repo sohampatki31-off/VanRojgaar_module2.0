@@ -19,6 +19,7 @@ from pymongo.database import Database
 from ..config import Settings
 from .ask_schemas import ChatTurn
 from .schemas import Idea, ProfileIn, ReportOut, ResourceRecord, VillageGeo
+from .scheme_schemas import SchemeRecord
 from .service import DatasetMeta
 from .store import KEEP_CHAT, KEEP_REPORTS, StoredProfile
 
@@ -32,6 +33,7 @@ REPORTS = "lv_report"
 CHAT = "lv_chat_log"
 RESOURCES = "lv_resource"
 IDEAS = "lv_idea"
+SCHEMES = "lv_scheme"
 DATASETS = "lv_dataset"
 
 # Created by `scripts/setup_livelihood_indexes.py` (a person runs it). In the host, merge these
@@ -60,6 +62,7 @@ INDEXES: dict[str, list[IndexModel]] = {
         ),
     ],
     IDEAS: [IndexModel([("code", ASCENDING)], name="code_unique", unique=True)],
+    SCHEMES: [IndexModel([("code", ASCENDING)], name="code_unique", unique=True)],
     DATASETS: [IndexModel([("loaded_at", DESCENDING)], name="newest_first")],
 }
 
@@ -275,6 +278,15 @@ class MongoStore:
             Idea.model_validate({k: v for k, v in d.items() if k != "_id"})
             for d in self._col(IDEAS).find({})
         ]
+
+    def list_schemes(self) -> list[SchemeRecord]:
+        rows = []
+        for d in self._col(SCHEMES).find({}):
+            try:
+                rows.append(SchemeRecord.model_validate({k: v for k, v in d.items() if k != "_id"}))
+            except ValueError:
+                continue  # a malformed row (an amount, an http link) is skipped, never shown
+        return sorted(rows, key=lambda r: r.code)
 
     def dataset_meta(self) -> DatasetMeta | None:
         return combine_datasets(list(self._col(DATASETS).find({})))

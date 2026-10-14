@@ -1,13 +1,13 @@
 """
-[USER RUNS] Seed the idea library and the demo village into MongoDB.
+[USER RUNS] Seed the idea library, the demo village and the SAMPLE scheme rows into MongoDB.
 
     python scripts/seed_livelihood.py            # dry run: prints what it would write
     python scripts/seed_livelihood.py --apply    # writes
 
-Upserts by `code` (ideas) and `village_id` (village): safe to run again, and never deletes. The
-ideas are a DRAFT, not reviewed by a forest-law expert, an agriculture expert, an animal-welfare
-NGO or the Forest Department (docs/IDEA_LIBRARY.md). The demo village is SAMPLE data: do not seed
-it into a database that serves real users.
+Upserts by `code` (ideas, schemes) and `village_id` (village): safe to run again, and never
+deletes. The ideas are a DRAFT, not reviewed by a forest-law expert, an agriculture expert, an
+animal-welfare NGO or the Forest Department (docs/IDEA_LIBRARY.md). The demo village and the
+schemes are SAMPLE data: do not seed them into a database that serves real users.
 """
 
 import sys
@@ -18,17 +18,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from pymongo import MongoClient  # noqa: E402
 
 from app.config import get_settings  # noqa: E402
-from app.livelihood.mongo_store import IDEAS, VILLAGES  # noqa: E402
-from app.livelihood.seed import load_demo_village, load_ideas  # noqa: E402
+from app.livelihood.mongo_store import IDEAS, SCHEMES, VILLAGES  # noqa: E402
+from app.livelihood.seed import load_demo_village, load_ideas, load_schemes  # noqa: E402
 
 
 def main(apply: bool) -> None:
     s = get_settings()
     ideas = load_ideas()
     village = load_demo_village()
+    schemes = load_schemes()
     print(f"database: {s.mongodb_db}   mode: {'APPLY' if apply else 'dry run'}")
     print(f"  ideas: {len(ideas)} (draft): {', '.join(i.code for i in ideas)}")
     print(f"  village: {village.village_id} (sample={village.is_sample})")
+    print(f"  schemes: {len(schemes)} (all sample rows, links only)")
     if not apply:
         print("dry run only; add --apply to write")
         return
@@ -38,6 +40,8 @@ def main(apply: bool) -> None:
     db = client[s.mongodb_db]
     for idea in ideas:
         db[IDEAS].replace_one({"code": idea.code}, idea.model_dump(mode="json"), upsert=True)
+    for scheme in schemes:
+        db[SCHEMES].replace_one({"code": scheme.code}, scheme.model_dump(mode="json"), upsert=True)
     db[VILLAGES].replace_one(
         {"village_id": village.village_id}, village.model_dump(mode="json"), upsert=True
     )

@@ -214,3 +214,10 @@ def test_chat_document_round_trip_and_index() -> None:
     assert doc["user_id"] == "user-1" and doc["turn_id"] == "abc"
     assert doc_to_chat(doc) == turn
     assert [i.document["name"] for i in INDEXES[CHAT]] == ["user_latest"]
+
+
+def test_scheme_collection_has_a_unique_code_index() -> None:
+    from app.livelihood.mongo_store import INDEXES, SCHEMES
+
+    assert [i.document["name"] for i in INDEXES[SCHEMES]] == ["code_unique"]
+    assert INDEXES[SCHEMES][0].document["unique"] is True

@@ -382,6 +382,10 @@ const Map<String, Map<String, String>> _text = {
         'You have not told us about your land, animals or what you own yet. Add your details to see them here.',
     'ask.removed.header': '{count} ideas are not in your top list',
     'ask.removed.none': 'No ideas were left out of your report.',
+    'ask.schemes.header':
+        'Schemes that may relate to your ideas. We only link to official pages and cannot say whether you qualify.',
+    'ask.item.idea_schemes': '{name}: {count} schemes may relate',
+    'ask.chip.schemes': 'Which schemes may help?',
     'ask.chip.heading': 'Where am I heading?',
     'ask.chip.top_ideas': 'What are my best ideas?',
     'ask.chip.idea': 'Tell me about {name}',
@@ -404,6 +408,83 @@ const Map<String, Map<String, String>> _text = {
     'm_10': 'October',
     'm_11': 'November',
     'm_12': 'December',
+    // Idea detail and schemes (stage 3)
+    'idea.title': 'Idea details',
+    'idea.rank': 'Number {rank} in your report',
+    'idea.status_removed': 'Not suggested: a law check stops it',
+    'idea.status_held_back': 'Held back: other ideas fit you better',
+    'idea.why': 'Why this idea',
+    'idea.needs': 'What it needs',
+    'idea.need_met_own': 'You have: {what}',
+    'idea.need_met_near': 'Found near you: {what}',
+    'idea.need_missing': 'Not found: {what}',
+    'idea.or': ' or ',
+    'idea.checks': 'Checks that ran',
+    'idea.check.passed': 'Passed',
+    'idea.check.flagged': 'Look at this',
+    'idea.check.not_checked': 'Not checked yet',
+    'idea.check_name.law': 'Law',
+    'idea.check_name.wildlife': 'Wildlife',
+    'idea.check_name.needs': 'What it needs',
+    'idea.check_name.land': 'Land',
+    'idea.check_name.community': 'Community forest',
+    'detail.check.law':
+        'It passed the four legal checks. This is not legal advice; the Gram Sabha decides.',
+    'detail.check.wildlife_low':
+        'Low wildlife risk. If you are unsure, ask the Forest Department.',
+    'detail.check.wildlife_medium':
+        'Medium wildlife risk. Ask the Forest Department before you start.',
+    'detail.check.wildlife_needs_permission':
+        'Needs Forest Department permission before you start.',
+    'detail.check.needs_met': 'What it needs is near you, or already yours.',
+    'detail.check.needs_missing': 'Something it needs was not found near you.',
+    'detail.check.land_ok': 'Your land is enough for this idea.',
+    'detail.weather.flood_risk':
+        'Your plot may flood. Plan for the rainy months.',
+    'detail.weather.heat':
+        'This idea needs care in the heat. The hottest month in your area is {month_name}, about {tmax_c} °C.',
+    'detail.weather.typical':
+        'Typical weather for your area is in your report. It is not a forecast.',
+    'idea.resources': 'Resources it would use',
+    'idea.warnings': 'Things to watch',
+    'idea.weather': 'Weather note',
+    'idea.schemes': 'Schemes that may relate',
+    'idea.schemes_note':
+        'We only link to official pages. We cannot say whether you qualify.',
+    'idea.schemes_none': 'No schemes are listed for this idea yet.',
+    'idea.see_all_schemes': 'See all schemes',
+    'idea.schemes_count': '{count} schemes may relate',
+    'idea.open': 'See details',
+    'sch.title': 'Schemes',
+    'sch.entry': 'Government and NGO schemes',
+    'sch.entry_sub': 'Links to official pages. We never take applications.',
+    'sch.tab_government': 'Government',
+    'sch.tab_ngo': 'NGO',
+    'sch.filter_help': 'Type of help',
+    'sch.filter_who': 'For',
+    'sch.filter_all': 'All',
+    'sch.help.farming': 'Farming',
+    'sch.help.fishing': 'Fishing',
+    'sch.help.livestock': 'Livestock',
+    'sch.help.small_business': 'Small business',
+    'sch.help.forest_produce': 'Forest produce',
+    'sch.aud.women': 'Women',
+    'sch.aud.tribal': 'Tribal communities',
+    'sch.aud.farmers': 'Farmers',
+    'sch.aud.groups': 'Groups',
+    'sch.runs': 'Run by: {who}',
+    'sch.who': 'Who can apply',
+    'sch.documents': 'Papers usually asked for',
+    'sch.last_checked': 'Last checked: {date}',
+    'sch.never_checked': 'Not checked by a person yet',
+    'sch.open': 'Open official page',
+    'sch.no_page': 'Official page not added yet',
+    'sch.open_failed': 'Could not open the page. Try again later.',
+    'sch.empty_register': 'No schemes have been added yet.',
+    'sch.empty_filter': 'No scheme matches these filters.',
+    'sch.disclaimer':
+        'We only link to official pages. We do not take applications and cannot say whether you qualify. Read the rules and amounts on the official page.',
+    'sch.sample_note': 'Sample rows for a demo. These are not real schemes.',
   },
   'mr': {
     'lv_title': 'माझा रोजगार अहवाल',
@@ -767,6 +848,10 @@ const Map<String, Map<String, String>> _text = {
         'तुम्ही अजून जमीन, प्राणी किंवा तुमच्याकडे काय आहे ते सांगितलेले नाही. ते येथे दिसण्यासाठी माहिती भरा.',
     'ask.removed.header': '{count} कल्पना तुमच्या पहिल्या यादीत नाहीत',
     'ask.removed.none': 'तुमच्या अहवालातून कोणत्याही कल्पना वगळलेल्या नाहीत.',
+    'ask.schemes.header':
+        'तुमच्या कल्पनांशी संबंधित असू शकणाऱ्या योजना. आम्ही फक्त अधिकृत पानांची लिंक देतो आणि तुम्ही पात्र आहात की नाही हे सांगू शकत नाही.',
+    'ask.item.idea_schemes': '{name}: {count} योजना संबंधित असू शकतात',
+    'ask.chip.schemes': 'कोणत्या योजना मदत करू शकतात?',
     'ask.chip.heading': 'मी कोणत्या दिशेने जात आहे?',
     'ask.chip.top_ideas': 'माझ्या सर्वोत्तम कल्पना कोणत्या?',
     'ask.chip.idea': '{name} बद्दल सांगा',
@@ -789,6 +874,84 @@ const Map<String, Map<String, String>> _text = {
     'm_10': 'ऑक्टोबर',
     'm_11': 'नोव्हेंबर',
     'm_12': 'डिसेंबर',
+    // Idea detail and schemes (machine draft: needs a native-speaker review)
+    'idea.title': 'कल्पनेचा तपशील',
+    'idea.rank': 'तुमच्या अहवालात क्रमांक {rank}',
+    'idea.status_removed': 'सुचवलेली नाही: कायद्याची तपासणी ती थांबवते',
+    'idea.status_held_back': 'मागे ठेवली: इतर कल्पना तुम्हाला जास्त जुळतात',
+    'idea.why': 'ही कल्पना का',
+    'idea.needs': 'यासाठी काय लागते',
+    'idea.need_met_own': 'तुमच्याकडे आहे: {what}',
+    'idea.need_met_near': 'तुमच्या जवळ आढळले: {what}',
+    'idea.need_missing': 'आढळले नाही: {what}',
+    'idea.or': ' किंवा ',
+    'idea.checks': 'केलेल्या तपासण्या',
+    'idea.check.passed': 'उत्तीर्ण',
+    'idea.check.flagged': 'याकडे लक्ष द्या',
+    'idea.check.not_checked': 'अजून तपासलेले नाही',
+    'idea.check_name.law': 'कायदा',
+    'idea.check_name.wildlife': 'वन्यजीव',
+    'idea.check_name.needs': 'यासाठी काय लागते',
+    'idea.check_name.land': 'जमीन',
+    'idea.check_name.community': 'सामुदायिक वन',
+    'detail.check.law':
+        'चारही कायदेशीर तपासण्या ही कल्पना पार करते. हा कायदेशीर सल्ला नाही; निर्णय ग्रामसभा घेते.',
+    'detail.check.wildlife_low':
+        'वन्यजीव धोका कमी. शंका असल्यास वन विभागाला विचारा.',
+    'detail.check.wildlife_medium':
+        'वन्यजीव धोका मध्यम. सुरू करण्यापूर्वी वन विभागाला विचारा.',
+    'detail.check.wildlife_needs_permission':
+        'सुरू करण्यापूर्वी वन विभागाची परवानगी लागते.',
+    'detail.check.needs_met':
+        'यासाठी लागणारे तुमच्या जवळ आहे, किंवा आधीच तुमचे आहे.',
+    'detail.check.needs_missing': 'यासाठी लागणारे काही तुमच्या जवळ आढळले नाही.',
+    'detail.check.land_ok': 'या कल्पनेसाठी तुमची जमीन पुरेशी आहे.',
+    'detail.weather.flood_risk':
+        'तुमच्या जमिनीला पूर येऊ शकतो. पावसाळ्याच्या महिन्यांसाठी नियोजन करा.',
+    'detail.weather.heat':
+        'या कल्पनेसाठी उन्हात काळजी लागते. तुमच्या भागातील सर्वात उष्ण महिना {month_name}, सुमारे {tmax_c} °C.',
+    'detail.weather.typical':
+        'तुमच्या भागातील सर्वसाधारण हवामान तुमच्या अहवालात आहे. हा अंदाज नाही.',
+    'idea.resources': 'यासाठी वापरता येणारी साधने',
+    'idea.warnings': 'लक्षात ठेवा',
+    'idea.weather': 'हवामानाची टीप',
+    'idea.schemes': 'संबंधित असू शकणाऱ्या योजना',
+    'idea.schemes_note':
+        'आम्ही फक्त अधिकृत पानांची लिंक देतो. तुम्ही पात्र आहात की नाही हे आम्ही सांगू शकत नाही.',
+    'idea.schemes_none': 'या कल्पनेसाठी अजून योजना नोंदवलेल्या नाहीत.',
+    'idea.see_all_schemes': 'सर्व योजना पहा',
+    'idea.schemes_count': '{count} योजना संबंधित असू शकतात',
+    'idea.open': 'तपशील पहा',
+    'sch.title': 'योजना',
+    'sch.entry': 'सरकारी आणि स्वयंसेवी संस्थांच्या योजना',
+    'sch.entry_sub': 'अधिकृत पानांच्या लिंक. आम्ही अर्ज घेत नाही.',
+    'sch.tab_government': 'सरकारी',
+    'sch.tab_ngo': 'स्वयंसेवी संस्था',
+    'sch.filter_help': 'मदतीचा प्रकार',
+    'sch.filter_who': 'कोणासाठी',
+    'sch.filter_all': 'सर्व',
+    'sch.help.farming': 'शेती',
+    'sch.help.fishing': 'मत्स्यव्यवसाय',
+    'sch.help.livestock': 'पशुपालन',
+    'sch.help.small_business': 'लघु उद्योग',
+    'sch.help.forest_produce': 'वनउपज',
+    'sch.aud.women': 'महिला',
+    'sch.aud.tribal': 'आदिवासी समुदाय',
+    'sch.aud.farmers': 'शेतकरी',
+    'sch.aud.groups': 'गट',
+    'sch.runs': 'चालवणारे: {who}',
+    'sch.who': 'कोण अर्ज करू शकतो',
+    'sch.documents': 'सहसा मागितली जाणारी कागदपत्रे',
+    'sch.last_checked': 'शेवटची तपासणी: {date}',
+    'sch.never_checked': 'अजून कोणा व्यक्तीने तपासलेली नाही',
+    'sch.open': 'अधिकृत पान उघडा',
+    'sch.no_page': 'अधिकृत पान अजून जोडलेले नाही',
+    'sch.open_failed': 'पान उघडता आले नाही. नंतर पुन्हा प्रयत्न करा.',
+    'sch.empty_register': 'अजून कोणत्याही योजना जोडलेल्या नाहीत.',
+    'sch.empty_filter': 'या निवडीशी जुळणारी योजना नाही.',
+    'sch.disclaimer':
+        'आम्ही फक्त अधिकृत पानांची लिंक देतो. आम्ही अर्ज घेत नाही आणि तुम्ही पात्र आहात की नाही हे सांगू शकत नाही. नियम आणि रक्कम अधिकृत पानावर वाचा.',
+    'sch.sample_note': 'डेमोसाठी नमुना नोंदी. ह्या खऱ्या योजना नाहीत.',
   },
 };
 
@@ -826,6 +989,9 @@ class LivelihoodStrings {
   String animal(String code) => t('a_$code');
   String asset(String code) => t('s_$code');
   String kind(String code) => t('k_$code');
+
+  /// A need code ('well', 'asset:pump') as words in this language.
+  String needName(String code) => _need(code);
 
   String _need(Object? need) {
     final code = '$need';

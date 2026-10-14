@@ -14,7 +14,7 @@ import re
 from dataclasses import replace
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Query, Response
 from pydantic import BaseModel, ConfigDict, Field
 from uuid6 import uuid7
 
@@ -24,6 +24,7 @@ from .ask_schemas import AnswerKind, AskHistoryOut, AskOut, AskRequest, ChatTurn
 from .deps import CurrentUser, get_store
 from .domain import ask_engine
 from .domain.config import DEFAULT_CONFIG, LivelihoodConfig
+from .domain.idea_detail import build_idea_detail
 from .domain.units import AreaUnit
 from .geo import circle_polygon, find_nearby, validate_point
 from .identity import UserInfo
@@ -42,11 +43,19 @@ from .schemas import (
     VillageGeo,
     VillageRef,
 )
+from .scheme_schemas import (
+    AUDIENCES,
+    HELP_TYPES,
+    IdeaDetailOut,
+    SchemeKind,
+    SchemesOut,
+)
 from .seed import (
     load_demo_village,
     load_ideas,
     load_sample_dataset,
     load_sample_weather,
+    load_schemes,
 )
 from .service import (
     DatasetMeta,
@@ -186,6 +195,7 @@ def _build_and_save_report(
         cfg=cfg,
         radius_m=radius,
         weather=load_sample_weather(),  # sample numbers until a real source is chosen (Q11)
+        schemes=store.list_schemes(),
         report_id=uuid7().hex,
     )
     store.save_report(str(user.id), report)
@@ -287,6 +297,56 @@ def delete_ask_history(user: CurrentUser, store: Store) -> Response:
     return Response(status_code=204)
 
 
+@router.get("/ideas/{code}", response_model=IdeaDetailOut)
+def idea_detail(code: str, user: CurrentUser, store: Store) -> IdeaDetailOut:
+    """
+    One idea in detail, from HIS current report: why it was suggested (or left out), what it
+    needs, the checks that ran, the resources it would use, a weather note, and schemes that may
+    relate. Built from the report, so it never disagrees with it.
+    """
+    report = _current_report(user, store)
+    idea = next((i for i in store.list_ideas() if i.code == code), None)
+    detail = build_idea_detail(report, idea, store.list_schemes()) if idea else None
+    if detail is None:
+        raise ApiError(404, "IDEA_NOT_FOUND", "livelihood.idea_not_found")
+    return detail
+
+
+@router.get("/schemes", response_model=SchemesOut)
+def list_schemes(
+    user: CurrentUser,
+    store: Store,
+    kind: SchemeKind | None = None,
+    help: Annotated[str | None, Query(pattern="^[a-z_]+$", max_length=30)] = None,  # noqa: A002
+    audience: Annotated[str | None, Query(pattern="^[a-z_]+$", max_length=30)] = None,
+) -> SchemesOut:
+    """
+    The scheme register: links to official pages, never applications, never "you qualify", never
+    an amount. Filter by kind (government / ngo), type of help and who it is for.
+    """
+    if help is not None and help not in HELP_TYPES:
+        raise ApiError(422, "UNKNOWN_FILTER", "livelihood.unknown_filter")
+    if audience is not None and audience not in AUDIENCES:
+        raise ApiError(422, "UNKNOWN_FILTER", "livelihood.unknown_filter")
+    everything = store.list_schemes()
+    shown = [
+        s
+        for s in everything
+        if (kind is None or s.kind is kind)
+        and (help is None or help in s.help_types)
+        and (audience is None or audience in s.audiences)
+    ]
+    return SchemesOut(
+        schemes=sorted(shown, key=lambda s: s.code),
+        help_types=[h for h in HELP_TYPES if any(h in s.help_types for s in everything)],
+        audiences=[a for a in AUDIENCES if any(a in s.audiences for s in everything)],
+        is_sample_data=any(s.is_sample for s in shown)
+        if shown
+        else any(s.is_sample for s in everything),
+        register_empty=not everything,
+    )
+
+
 class NearbyRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     lat: float = Field(ge=-90, le=90)
@@ -371,4 +431,5 @@ def demo_report(body: DemoReportRequest) -> ReportOut:
         cfg=cfg,
         radius_m=body.radius_m,
         weather=load_sample_weather(),
+        schemes=load_schemes(),
     )

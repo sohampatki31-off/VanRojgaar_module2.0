@@ -1,6 +1,6 @@
 # VanMitra Module 4: to-do and status
 
-> Updated 2026-10-14 (evening: stages 1 and 2 done). Companion: [to_do_deferred_items.md](to_do_deferred_items.md) (the four things we
+> Updated 2026-10-14 (evening: stages 1, 2 and 3 done). Companion: [to_do_deferred_items.md](to_do_deferred_items.md) (the four things we
 > chose not to build first, explained in full). Rules that never break: [../CLAUDE.md](../CLAUDE.md).
 > Legend: ✅ done · 🔄 in progress · ⬜ not started · ⛔ blocked on a person or a decision outside the code
 
@@ -17,8 +17,8 @@ encrypted cache, and "Delete my answers" is guaranteed to reach the server.
 
 | Area | Status |
 |---|---|
-| Backend modules 1-3 and the Ask chat (rules, profile, reports, nearby, loader, host-style auth seam, Ask) | ✅ 416 tests, ruff and strict mypy clean |
-| Frontend modules 1-3 and the Ask screen (report, intake form, live API, offline cache, Ask) | ✅ 96 tests (+4 live-contract, run against a real server), analyzer clean |
+| Backend modules 1-3 and the Ask chat (rules, profile, reports, nearby, loader, host-style auth seam, Ask) | ✅ 440 tests, ruff and strict mypy clean |
+| Frontend modules 1-3 and the Ask screen (report, intake form, live API, offline cache, Ask) | ✅ 120 tests (+5 live-contract, run against a real server), analyzer clean |
 | Integration into the host app `vanMitraAI` | ✅ local branch `feature/module4-livelihood`, not pushed (host: 245 backend, 95 Flutter tests) |
 | Running on a real phone (A059P, Android 16, USB) | 🔄 app installs and runs; end-to-end check is stage 1 below |
 | Real MongoDB | ⛔ nothing run against a database yet; needs a person (see below) |
@@ -53,12 +53,17 @@ Backend `POST /ask`, `GET/DELETE /ask/history`; app screen `/livelihood/ask` rea
 - [ ] Marathi and Hindi wording of every `ask.*` string is a machine draft (Hindi falls back to English for now)
 - [ ] Real MongoDB: `lv_chat_log` index (a person runs `setup_livelihood_indexes.py`); the Mongo chat code is unit-tested only
 
-### Stage 3: idea detail and Schemes tab ⬜
-- [ ] Idea detail screen: why suggested, what it needs, the checks that ran, a weather note, matching schemes, warnings
-- [ ] Backend `GET /ideas/{code}` for the current report
-- [ ] Schemes tab: Government and NGO tabs, filters (farming, fishing, livestock, small business, forest produce; women, tribal, farmers, groups)
-- [ ] Scheme cards: what it is, who runs it, who can apply, documents, last checked, and **Open official page** (we never take applications, never say "you qualify", never show an amount unless the official page does)
-- [ ] All scheme rows labelled **Sample** until a real, hand-checked register exists
+### Stage 3: idea detail and Schemes tab ✅
+Backend `GET /ideas/{code}`, `GET /schemes`; app screens `/livelihood/idea` (tap any idea card or a row in "Why not others?") and `/livelihood/schemes` (from the end of the report). 24 new backend tests, 24 new app tests.
+- [x] Idea detail screen: why suggested, what it needs (near you / yours / not found), the checks that ran (law, wildlife, needs, land, community forest, each with a word and a reason), a weather note, the resources it would use, warnings, matching schemes
+- [x] Backend `GET /ideas/{code}` built from his current report (rebuilt if his details changed); an idea removed by law shows the law and no schemes; an idea the report knows nothing about is a 404, never invented
+- [x] Schemes tab: Government and NGO tabs, filters (farming, fishing, livestock, small business, forest produce; women, tribal, farmers, groups)
+- [x] Scheme cards: what it is, who runs it, who can apply (as the official page says), papers usually asked for, last checked, and **Open official page** (https only). There is **no field for an amount** and the wording never says "you qualify"
+- [x] All 8 scheme rows are labelled **Sample** (they are examples, not real schemes); 3 link to the national scheme search portal and say so
+- [x] Idea cards show how many register rows may relate; "Ask" answers questions about schemes from those counts
+- [ ] ⛔ A real, hand-checked scheme register: who fills and signs it (Q23). Until then the Schemes tab is a demo of the layout
+- [ ] Marathi wording of every new string is a machine draft
+- [ ] Real MongoDB: `lv_scheme` index and `seed_livelihood.py --apply` (a person runs them)
 
 ### Stage 4: map of the plot and resources ⬜ (open decision Q20)
 - [ ] A small map of his plot and the resources around it, replacing typed coordinates with a pin picker
