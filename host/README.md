@@ -37,12 +37,18 @@ The host side lives on the local branch `feature/module4-livelihood` of `vanMitr
 
 Step-by-step for putting the server online: `docs/DEPLOY_DEMO.md` (also in the host repo).
 
-## Offline demo APKs (`docs/DEMO_APKS.md`)
+## The universal offline demo APK (`docs/DEMO_APKS.md`)
+
+One APK, no server: `ApiClient` hands every call to `DemoBackend` (`lib/demo/`), a Dart port of the
+real backend (accounts and roles, the claim path, Forms A, B, C, evidence, the Gram Sabha, the FRC,
+boundary mapping, ...) over an in-memory database kept on the phone, plus the Module 4 answers made
+by the real Module 4 rules.
 
 | File | Goes to (in `vanMitraAI/vanmitra_tem`) | What |
 |---|---|---|
-| `frontend/lib/demo/*.dart` | `lib/demo/` | `DemoMode` (the personas), `DemoBackend` (answers the app's API calls from bundled data), `DemoLivelihood` (Module 4) |
-| `frontend/assets/demo/livelihood_demo.json` | `assets/demo/` | the mock data, made by `backend/scripts/export_demo_fixtures.py` in this repo |
-| `frontend/test/demo_backend_test.dart` | `test/` | its tests, checked against the app's real models |
-| edits to `core/api/api_client.dart`, `screens/onboarding/registration_screen.dart`, `screens/home/villager_home_screen.dart`, `widgets/livelihood_host_frame.dart`, `pubspec.yaml` | same | the demo hooks (see git history of the host branch) |
+| `frontend/lib/demo/**` | `lib/demo/` | the demo server: `core/` (router, database, accounts, cases and the claim path), `forms/`, `evidence/`, `gramsabha/`, `procedure/`, `boundary/`, `demo_livelihood.dart`, `demo_seed_claims.dart`, `demo_backend.dart` |
+| `frontend/assets/demo/livelihood_demo.json` | `assets/demo/` | Module 4 mock data, made by `backend/scripts/export_demo_fixtures.py` in this repo |
+| `frontend/test/demo/**` | `test/demo/` | about 300 tests, ported from the backend's own unit tests plus route-level and end-to-end tests |
+| edits to `core/api/api_client.dart`, `screens/onboarding/registration_screen.dart`, `widgets/livelihood_host_frame.dart`, `main.dart`, `pubspec.yaml` | same | the demo hooks (see the host branch history) |
 
+Build: `flutter build apk --release --dart-define=VANMITRA_DEMO=all`.
