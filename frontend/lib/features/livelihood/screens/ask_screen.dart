@@ -124,6 +124,18 @@ class _AskScreenState extends ConsumerState<AskScreen> {
                     padding: const EdgeInsets.all(AppSpacing.md),
                     children: [
                       if (state.turns.isEmpty) _Intro(s.t('ask.intro')),
+                      if (state.aiAvailable && state.aiConsent == null)
+                        _ConsentCard(
+                          title: s.t('ask.ai_consent_title'),
+                          body: s.t('ask.ai_consent_body'),
+                          allow: s.t('ask.ai_allow'),
+                          deny: s.t('ask.ai_deny'),
+                          onAllow: () =>
+                              ref.read(askProvider.notifier).setAiConsent(true),
+                          onDeny: () => ref
+                              .read(askProvider.notifier)
+                              .setAiConsent(false),
+                        ),
                       for (final turn in state.turns) ...[
                         QuestionBubble(_questionText(s, turn)),
                         const SizedBox(height: AppSpacing.sm),
@@ -137,6 +149,16 @@ class _AskScreenState extends ConsumerState<AskScreen> {
                     ],
                   ),
           ),
+          if (state.aiAvailable && state.aiConsent != null)
+            SwitchListTile(
+              dense: true,
+              value: state.aiConsent == true,
+              onChanged: (v) => ref.read(askProvider.notifier).setAiConsent(v),
+              title: Text(
+                s.t('ask.ai_toggle'),
+                style: AppTypography.caption.copyWith(color: c.textSecondary),
+              ),
+            ),
           if (state.chips.isNotEmpty)
             _Suggestions(
               label: s.t('ask.suggestions'),
@@ -192,6 +214,81 @@ class _Intro extends StatelessWidget {
               text,
               style: AppTypography.bodyLarge.copyWith(color: c.textPrimary),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Asked once, plainly: may an AI assistant read the facts of his report (never his name or the
+/// place of his plot)? Nothing is sent to it until he says yes.
+class _ConsentCard extends StatelessWidget {
+  const _ConsentCard({
+    required this.title,
+    required this.body,
+    required this.allow,
+    required this.deny,
+    required this.onAllow,
+    required this.onDeny,
+  });
+
+  final String title;
+  final String body;
+  final String allow;
+  final String deny;
+  final VoidCallback onAllow;
+  final VoidCallback onDeny;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: c.cardBg,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.forestSage),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.smart_toy_outlined, color: AppColors.forestSage),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTypography.title.copyWith(color: c.textPrimary),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(body, style: AppTypography.body.copyWith(color: c.textPrimary)),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: [
+              FilledButton(
+                onPressed: onAllow,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.forestSage,
+                  minimumSize: const Size(120, 48),
+                ),
+                child: Text(allow),
+              ),
+              OutlinedButton(
+                onPressed: onDeny,
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(120, 48),
+                ),
+                child: Text(deny),
+              ),
+            ],
           ),
         ],
       ),

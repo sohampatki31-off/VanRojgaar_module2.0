@@ -35,6 +35,9 @@ class AskRequest(BaseModel):
     question: str | None = Field(default=None, max_length=MAX_QUESTION_CHARS)
     chip: str | None = Field(default=None, max_length=60, pattern=r"^[a-z0-9_:]+$")
     lang: Lang = Lang.EN
+    # He has said the AI assistant may see the facts of his report (never his name or plot). The
+    # server uses the AI only when this is true AND the AI step is switched on there.
+    ai_consent: bool = False
 
     @model_validator(mode="after")
     def _exactly_one(self) -> "AskRequest":
@@ -82,3 +85,4 @@ class AskHistoryOut(BaseModel):
     turns: list[ChatTurn]
     chips: list[ChipOut]
     has_report: bool
+    ai_available: bool = False  # the AI step is on, so the app may ask for his permission

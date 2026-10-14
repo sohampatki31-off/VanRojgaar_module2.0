@@ -77,6 +77,13 @@ class LivelihoodStore(Protocol):
         """Delete all his history (rule L8). Returns how many turns."""
         ...
 
+    # a cost cap for the AI step: a counter, NOT part of his history, so clearing his questions
+    # cannot reset it
+    def take_ai_use(self, user_id: str, day: str, limit: int) -> bool:
+        """Count one AI call for this person on this UTC day, BEFORE the call is made. False
+        (and nothing counted) if he has already used `limit` today. Failed calls count too."""
+        ...
+
     # shared data
     def get_village(self, village_id: str) -> VillageGeo | None: ...
 
@@ -114,6 +121,7 @@ class InMemoryStore:
         self._profiles: dict[str, StoredProfile] = {}
         self._reports: dict[str, list[ReportOut]] = {}
         self._chat: dict[str, list[ChatTurn]] = {}
+        self._ai_use: dict[tuple[str, str], int] = {}
         self._header, self._resources = load_sample_dataset()
 
     # profile
@@ -169,6 +177,14 @@ class InMemoryStore:
     def delete_chat(self, user_id: str) -> int:
         with self._lock:
             return len(self._chat.pop(user_id, []))
+
+    def take_ai_use(self, user_id: str, day: str, limit: int) -> bool:
+        with self._lock:
+            used = self._ai_use.get((user_id, day), 0)
+            if used >= limit:
+                return False
+            self._ai_use[(user_id, day)] = used + 1
+            return True
 
     # shared data
     def get_village(self, village_id: str) -> VillageGeo | None:

@@ -50,7 +50,14 @@ Try it (dev users on, memory store): send `Authorization: Bearer <token from dev
 | `make_sample_dataset.py`, `export_sample_report.py` | no (files only) | regenerate the SAMPLE data; export a report for the app |
 | `load_livelihood_resources.py FILE` | **only with `--apply`** | validate a resource GeoJSON (default), then load it. Never deletes |
 | `setup_livelihood_indexes.py` | **only with `--apply`** | create the `lv_*` indexes |
-| `seed_livelihood.py` | **only with `--apply`** | upsert the draft ideas and the demo village |
+| `seed_livelihood.py` | **only with `--apply`** | upsert the draft ideas, the demo village and the SAMPLE scheme rows |
+| `eval_ask_ai.py` | no (writes `eval_out/`) | the gate for the AI step: 30 questions x 3 languages. **`--run` calls the real model and spends money**; without it, a dry run |
 | `smoke_mongo.py` | **only with `--apply`**, and only for a database named `*_test` | profile round trip through `MongoStore` |
 
 `[USER RUNS]`: every script that writes defaults to a dry run. Plan and contract: `../docs/BACKEND_PLAN.md`.
+
+## Ask about your report, and the AI step
+
+`POST /api/v1/livelihood/ask`, `GET/DELETE /ask/history`. The safety check, the report-only answer and the number check are plain code (`app/livelihood/domain/ask_*.py`) and need no model.
+
+The AI step is **off by default**. To use it: `pip install -r requirements-ai.txt`, then in `.env` set `VANMITRA_ANTHROPIC_API_KEY`, optionally `VANMITRA_LIVELIHOOD_AI_MODEL` (default `claude-opus-5-5`), `..._AI_EFFORT` (`low`), `..._AI_DAILY_LIMIT` (20 per person per day), and run `python scripts/eval_ask_ai.py --run` **before** setting `VANMITRA_LIVELIHOOD_AI_ENABLED=true`. How it is built and what it is not allowed to do: `../docs/to_do.md` (the AI agent) and the module notes in `app/livelihood/ai.py`.

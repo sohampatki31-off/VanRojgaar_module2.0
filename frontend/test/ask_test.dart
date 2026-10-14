@@ -49,9 +49,15 @@ class _FakeAsk implements AskRepository {
     String? question,
     String? chip,
     required String lang,
+    bool aiConsent = false,
   }) async {
     if (failWith != null) throw failWith!;
-    asked.add({'question': question, 'chip': chip, 'lang': lang});
+    asked.add({
+      'question': question,
+      'chip': chip,
+      'lang': lang,
+      'ai': aiConsent ? 'yes' : null,
+    });
     return AskReply(
       ChatTurn(
         id: 't${asked.length}',
@@ -88,6 +94,7 @@ Future<void> _pump(
   _FakeAsk repo, {
   String lang = 'en',
   Widget home = const AskScreen(),
+  AskConsentStore? consent,
 }) async {
   tester.view.physicalSize = const Size(800, 2000);
   tester.view.devicePixelRatio = 2;
@@ -96,6 +103,8 @@ Future<void> _pump(
     ProviderScope(
       overrides: [
         askRepositoryProvider.overrideWithValue(repo),
+        askConsentStoreProvider
+            .overrideWithValue(consent ?? MemoryAskConsentStore()),
         livelihoodRepositoryProvider.overrideWithValue(_ReportRepo()),
       ],
       child: MaterialApp(
@@ -232,6 +241,7 @@ void main() {
         'question': 'हवामान कसे आहे?',
         'chip': null,
         'lang': 'mr',
+        'ai': null,
       });
       expect(find.text('हवामान कसे आहे?'), findsOneWidget); // his bubble
       expect(find.text(_mr.t('ask.off_topic')), findsOneWidget);
@@ -297,12 +307,13 @@ void main() {
       final repo = _FakeAsk(
         history0: AskHistory(hasReport: true, turns: [turn]),
       );
-      await _pump(tester, repo, lang: 'en');
+      final store = MemoryAskConsentStore();
+      await _pump(tester, repo, lang: 'en', consent: store);
       expect(
         find.text('Goat rearing is number 2 in your report: Fair fit'),
         findsOneWidget,
       );
-      await _pump(tester, repo, lang: 'mr');
+      await _pump(tester, repo, lang: 'mr', consent: store);
       expect(
         find.text(
             'शेळीपालन तुमच्या अहवालात क्रमांक 2 वर आहे: ${_mr.t('lv_fit_fair')}'),
@@ -357,6 +368,165 @@ void main() {
       await tester.tap(find.text(_en.t('ask.entry')));
       await tester.pumpAndSettle();
       expect(find.text(_en.t('ask.intro')), findsOneWidget);
+    });
+  });
+
+  group('AI assistant', () {
+    AskHistory available({List<ChatTurn> turns = const []}) =>
+        AskHistory(hasReport: true, aiAvailable: true, turns: turns);
+
+    testWidgets('with the AI off on the server, nothing about it is shown',
+        (tester) async {
+      await _pump(
+          tester, _FakeAsk(history0: const AskHistory(hasReport: true)));
+      expect(find.text(_en.t('ask.ai_consent_title')), findsNothing);
+      expect(find.byType(SwitchListTile), findsNothing);
+    });
+
+    testWidgets(
+        'asks his permission once, in plain words, before anything is sent',
+        (tester) async {
+      final repo = _FakeAsk(history0: available());
+      final store = MemoryAskConsentStore();
+      await _pump(tester, repo, consent: store);
+      expect(find.text(_en.t('ask.ai_consent_title')), findsOneWidget);
+      expect(find.textContaining('never send your name'), findsOneWidget);
+      expect(
+          find.textContaining('question you type is sent too'), findsOneWidget);
+      // typing before he answers sends no permission
+      await tester.enterText(find.byType(TextField), 'help me');
+      await tester.tap(find.byIcon(Icons.send_rounded));
+      await tester.pumpAndSettle();
+      expect(repo.asked.single['ai'], isNull);
+    });
+
+    testWidgets('allowing is remembered and sent with his questions',
+        (tester) async {
+      final repo = _FakeAsk(history0: available());
+      final store = MemoryAskConsentStore();
+      await _pump(tester, repo, consent: store);
+      await tester.tap(find.text(_en.t('ask.ai_allow')));
+      await tester.pumpAndSettle();
+      expect(store.value, isTrue);
+      expect(find.text(_en.t('ask.ai_consent_title')), findsNothing);
+      await tester.enterText(find.byType(TextField), 'help me');
+      await tester.tap(find.byIcon(Icons.send_rounded));
+      await tester.pumpAndSettle();
+      expect(repo.asked.single['ai'], 'yes');
+    });
+
+    testWidgets('declining is remembered and nothing is sent to the AI',
+        (tester) async {
+      final repo = _FakeAsk(history0: available());
+      final store = MemoryAskConsentStore();
+      await _pump(tester, repo, consent: store);
+      await tester.tap(find.text(_en.t('ask.ai_deny')));
+      await tester.pumpAndSettle();
+      expect(store.value, isFalse);
+      await tester.enterText(find.byType(TextField), 'help me');
+      await tester.tap(find.byIcon(Icons.send_rounded));
+      await tester.pumpAndSettle();
+      expect(repo.asked.single['ai'], isNull);
+    });
+
+    testWidgets('he can change his mind with the switch', (tester) async {
+      final repo = _FakeAsk(history0: available());
+      final store = MemoryAskConsentStore(true);
+      await _pump(tester, repo, consent: store);
+      expect(find.text(_en.t('ask.ai_consent_title')), findsNothing);
+      await tester.tap(find.byType(SwitchListTile));
+      await tester.pumpAndSettle();
+      expect(store.value, isFalse);
+      await tester.enterText(find.byType(TextField), 'help me');
+      await tester.tap(find.byIcon(Icons.send_rounded));
+      await tester.pumpAndSettle();
+      expect(repo.asked.single['ai'], isNull);
+    });
+
+    testWidgets('a tapped suggestion never carries the AI permission',
+        (tester) async {
+      final repo = _FakeAsk(
+        history0: const AskHistory(hasReport: true, aiAvailable: true, chips: [
+          SuggestedQuestion('weather', Reason('ask.chip.weather')),
+        ]),
+      );
+      await _pump(tester, repo, consent: MemoryAskConsentStore(true));
+      await tester.tap(find.text('How is the weather?'));
+      await tester.pumpAndSettle();
+      // the app sends the flag with every ask; the server ignores it for suggestions
+      expect(repo.asked.single['chip'], 'weather');
+    });
+
+    testWidgets('an AI answer says an AI wrote it, and still shows its source',
+        (tester) async {
+      final turn = ChatTurn(
+        id: 'ai1',
+        question: 'help me',
+        answer: Answer(
+          kind: AnswerKind.answer,
+          topic: 'ai',
+          headline: const Reason('ask.ai_answer'),
+          text: 'Your children can help with the dairy.',
+          engine: 'ai',
+          fromParts: const ['your_details'],
+          isSampleData: true,
+        ),
+      );
+      await _pump(
+        tester,
+        _FakeAsk(history0: available(turns: [turn])),
+        consent: MemoryAskConsentStore(true),
+      );
+      expect(
+          find.text('Your children can help with the dairy.'), findsOneWidget);
+      expect(find.text(_en.t('ask.ai_label')), findsOneWidget);
+      expect(find.text('From: what you told us'), findsOneWidget);
+      expect(find.text(_en.t('lv_sample')), findsOneWidget);
+    });
+
+    testWidgets('our own answers are not labelled as AI', (tester) async {
+      final turn = ChatTurn(
+        id: 't1',
+        question: 'joke',
+        answer: _answer(AnswerKind.offTopic, 'ask.off_topic'),
+      );
+      await _pump(
+        tester,
+        _FakeAsk(history0: available(turns: [turn])),
+        consent: MemoryAskConsentStore(true),
+      );
+      expect(find.text(_en.t('ask.ai_label')), findsNothing);
+    });
+
+    test('the AI fields parse, and old servers without them still work', () {
+      final a = Answer.fromJson({
+        'kind': 'ANSWER',
+        'topic': 'ai',
+        'headline': {'key': 'ask.ai_answer', 'params': {}},
+        'text': 'x',
+        'engine': 'ai',
+      });
+      expect(a.isAi, isTrue);
+      final old = Answer.fromJson({
+        'kind': 'ANSWER',
+        'topic': 't',
+        'headline': {'key': 'ask.top_ideas', 'params': {}},
+      });
+      expect(old.isAi, isFalse);
+      expect(
+          AskHistory.fromJson({'turns': [], 'chips': []}).aiAvailable, isFalse);
+      expect(AskHistory.fromJson({'ai_available': true}).aiAvailable, isTrue);
+    });
+
+    test('a text answer without the ai engine is never labelled AI', () {
+      final a = Answer.fromJson({
+        'kind': 'ANSWER',
+        'topic': 'x',
+        'headline': {'key': 'ask.top_ideas', 'params': {}},
+        'text': 'words',
+        'engine': 'template',
+      });
+      expect(a.isAi, isFalse);
     });
   });
 
@@ -415,6 +585,8 @@ void main() {
       final pattern = RegExp(r'"(ask\.[a-z_.]+)"');
       for (final src in [
         engine.readAsStringSync(),
+        File('../backend/app/livelihood/domain/ask_ai_guard.py')
+            .readAsStringSync(),
         File('../backend/app/livelihood/domain/ask_topics.py')
             .readAsStringSync(),
       ]) {

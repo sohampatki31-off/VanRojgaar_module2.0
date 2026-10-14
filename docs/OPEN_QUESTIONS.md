@@ -38,7 +38,7 @@
 
 | # | Question | Needed before | Owner |
 |---|---|---|---|
-| Q10 | **Question-box AI:** Claude API key, which model, monthly budget; the server-side route and number-check design are in the PDF §11 | Phase 4 | Product owner |
+| Q10 | **Question-box AI:** Claude API key, which model, monthly budget; the server-side route and number-check design are in the PDF §11. **Built and OFF** (default model `claude-opus-5-5`, effort `low`, 20 AI answers per person per day); to switch on: set the key, run `scripts/eval_ask_ai.py --run`, read the result, then set `VANMITRA_LIVELIHOOD_AI_ENABLED=true`. Cost: the run prints real token totals; check the current price of the model you choose before a long run | Phase 4 | Product owner |
 | Q11 | **Weather and disaster data:** which free weather service, under what terms; where to find village-level disaster records | Phase 3 | Data & GIS |
 | Q12 | **Reviewers:** name the forest-law expert, agriculture expert, animal-welfare reviewer, NGO partner, Marathi and Hindi translators | Phase 5 | Product owner |
 | Q18 | **Resource data permission:** which department sends the formal MRSAC request, under what licence may we copy and refresh? (Permission takes weeks; start now) | Phase 3 | Product owner |

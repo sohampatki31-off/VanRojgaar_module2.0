@@ -135,7 +135,7 @@ def test_history_before_any_question_is_empty_and_says_there_is_no_report(
     client: TestClient,
 ) -> None:
     body = client.get(f"{URL}/ask/history", headers=auth()).json()
-    assert body == {"turns": [], "chips": [], "has_report": False}
+    assert body == {"turns": [], "chips": [], "has_report": False, "ai_available": False}
 
 
 def test_nobody_sees_anyone_elses_questions(client: TestClient) -> None:

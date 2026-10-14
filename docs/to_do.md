@@ -1,6 +1,6 @@
 # VanMitra Module 4: to-do and status
 
-> Updated 2026-10-14 (evening: stages 1, 2 and 3 done). Companion: [to_do_deferred_items.md](to_do_deferred_items.md) (the four things we
+> Updated 2026-10-14 (evening: stages 1, 2, 3 and the AI step built; the AI is OFF until you run the gate). Companion: [to_do_deferred_items.md](to_do_deferred_items.md) (the four things we
 > chose not to build first, explained in full). Rules that never break: [../CLAUDE.md](../CLAUDE.md).
 > Legend: ✅ done · 🔄 in progress · ⬜ not started · ⛔ blocked on a person or a decision outside the code
 
@@ -17,8 +17,8 @@ encrypted cache, and "Delete my answers" is guaranteed to reach the server.
 
 | Area | Status |
 |---|---|
-| Backend modules 1-3 and the Ask chat (rules, profile, reports, nearby, loader, host-style auth seam, Ask) | ✅ 440 tests, ruff and strict mypy clean |
-| Frontend modules 1-3 and the Ask screen (report, intake form, live API, offline cache, Ask) | ✅ 120 tests (+5 live-contract, run against a real server), analyzer clean |
+| Backend modules 1-3 and the Ask chat (rules, profile, reports, nearby, loader, host-style auth seam, Ask) | ✅ 541 tests (incl. the AI set), ruff and strict mypy clean |
+| Frontend modules 1-3 and the Ask screen (report, intake form, live API, offline cache, Ask) | ✅ 130 tests (+5 live-contract, run against a real server), analyzer clean |
 | Integration into the host app `vanMitraAI` | ✅ local branch `feature/module4-livelihood`, not pushed (host: 245 backend, 95 Flutter tests) |
 | Running on a real phone (A059P, Android 16, USB) | 🔄 app installs and runs; end-to-end check is stage 1 below |
 | Real MongoDB | ⛔ nothing run against a database yet; needs a person (see below) |
@@ -74,15 +74,30 @@ Backend `GET /ideas/{code}`, `GET /schemes`; app screens `/livelihood/idea` (tap
 - [ ] Rehearse the 5-minute pitch path from the PDF (§17); record a backup screen recording
 - [ ] State out loud what is Sample and what is real
 
-### The AI agent (real AI chat) ⬜ next, after stage 3
-Stage 2 is the safe foundation. This adds Claude behind the **same** checks.
-- [ ] A pluggable "answerer": the deterministic one (stage 2) or Claude
-- [ ] Claude called **only from the backend**; the key lives in `backend/.env`, never in the app
-- [ ] Only report facts go to the model (never his name); report treated as data, not instructions
-- [ ] The number check and the safety check run **around** the model, so it cannot bypass them
-- [ ] A fixed test set in three languages with **zero unsupported numbers** before it is switched on
-- [ ] ⛔ Needs from you: an API key, a model choice, a monthly budget (PDF open decision Q10)
-- [ ] ⛔ Needs from you: consent wording for sending his facts to an outside service (DPDP Act 2023)
+### The AI agent (real AI chat) ✅ built, OFF by default; ⛔ not switched on
+Claude sits **behind** the same checks. Nothing about the safety of the Ask box depends on the model.
+How it works (`backend/app/livelihood/ai.py`, `domain/ask_ai.py`, `ask_ai_guard.py`, `ask_facts.py`):
+1. The safety check on the question runs first, in code, **before any model is called**.
+2. Our own engine answers whatever it understands, exactly, with no model (best ideas, water, cost, weather ...). Suggestion chips never use the model.
+3. Only a question the engine cannot place is offered to the model, with the **facts of his report only**: never his name, the plot's coordinates, the village, or any ids.
+4. The model must reply in a fixed JSON shape (answer / off topic / not in report). Its words then go through the guard: **the number check** (a number not in the report replaces the answer), the safety check again, no "you qualify", no links, a length limit. A failed check becomes the grey "not in your report".
+5. If the model is unreachable, refuses, or he is over his daily limit, he simply gets step 2's answer.
+- [x] Pluggable answerer: the engine, or Claude behind it; tests use a fake, so nothing in the test suite ever calls out
+- [x] Claude called **only from the backend**; the key is `VANMITRA_ANTHROPIC_API_KEY` in `backend/.env` (never in the app, never printed, never committed)
+- [x] Only report facts go to the model; the report and the question are told to be **data, not instructions** (tested with "ignore your rules")
+- [x] Number check and safety check run **around** the model (tested, including a test that proves the gate can fail)
+- [x] **His permission first**: the app asks once ("may an AI assistant read the facts of your report? never your name or the place of your plot"), keeps the answer on the phone, and he can switch it off any time. The server uses the AI only if he said yes **and** it is switched on there
+- [x] A cost cap: 20 AI answers per person per day (`VANMITRA_LIVELIHOOD_AI_DAILY_LIMIT`)
+- [x] AI answers are labelled "Written by an AI assistant from your report. Please check it yourself."
+- [x] The gate set: 30 questions x 3 languages (`backend/tests/ai_eval/questions.json`) and the runner `backend/scripts/eval_ask_ai.py`. Without `--run` it only counts what it would ask. The parts that need no model are tested: all 12 harmful phrasings are refused, the engine answers its own, off-topic ones are left for the model to decline
+- [ ] ⛔ **You run the gate**: `python scripts/eval_ask_ai.py --run` (spends real money, needs a key). The AI step stays off until it prints `GATE: PASSED` and a person has read the quality figures and the answers in `eval_out/`
+- [ ] ⛔ Needs from you: an **API key**, a **model choice** and a **monthly budget** (PDF Q10). Default in the code is `claude-opus-5-5` (the current most capable Opus); a cheaper model is your call, not mine
+- [ ] ⛔ Needs from you: a lawyer or the department to approve the **consent wording** (DPDP Act 2023), and a native speaker to review the Marathi/Hindi
+- [x] Found by an independent review and fixed: the cap is its own counter taken **before** each model call (so clearing history, free chips, failed calls and parallel requests cannot get round it); eligibility, link, money, percentage and number-word checks run on normalised text (curly apostrophes, odd spacing, Marathi/Hindi forms); month indexes and coordinates are not quotable facts; Indian digit grouping is read correctly; digit runs in the typed question are masked **before** it is sent; the consent text says the typed question is sent; consent is cleared with "Delete my answers"
+- [ ] Known limit: the number check works on values, not meaning. A small number that also appears in the report for another reason (a rainfall of 6.6 mm allows "7") can still pass. Marathi/Hindi number words are only partly covered. The gate run should read the answers for this
+- [ ] Known limit: the person's yes is kept on the phone and sent as a flag; the server keeps no record of it. The daily-usage counter (`lv_ai_usage`) is never deleted with his answers (it is a cost counter, no content); old days can be removed by a person
+- [ ] Known limit: resource names come from the dataset and are sent as facts; if real data puts a person's name in one, it would be sent. Check the real dataset before switching the AI on
+- [ ] Known limit: an AI answer is saved in the language it was written in; it cannot re-render when he switches language (our own answers do)
 
 ---
 

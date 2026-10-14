@@ -140,3 +140,14 @@ Host checks: `ruff check app tests scripts` · `ruff format --check …` · `myp
 - [ ] Light **and** dark themes checked; Marathi not clipped on the smallest viewport
 - [ ] No `.env`, `google-services.json`, keys or personal data committed
 - [ ] Update the host docs: add a Module 4 section to `docs/BACKEND.md` and `frontend_backend.md`; fix the stale PostGIS statements in `previous/BACKEND_PLAN.md`
+
+
+## Added later: the Ask box, schemes and the AI step
+
+- New feature files only (nothing in the host changes except what is listed here): backend `app/livelihood/ask_schemas.py`, `scheme_schemas.py`, `ai.py`, `domain/ask_*.py`, `domain/idea_detail.py`; app `lib/features/livelihood/` (Ask, Schemes, idea detail screens).
+- Routes added under `/api/v1/livelihood`: `POST /ask`, `GET/DELETE /ask/history`, `GET /ideas/{code}`, `GET /schemes`.
+- App routes to register next to the others: `LivelihoodRoutes.ask`, `.idea`, `.schemes` (they are in `livelihoodRoutes`).
+- New collections: `lv_chat_log`, `lv_scheme` (indexes in `mongo_store.INDEXES`).
+- New app dependency: `url_launcher` (the host already uses `^6.3.2`), plus an https `<queries>` entry in the Android manifest.
+- New settings (all optional, AI off by default): `livelihood_ai_enabled`, `anthropic_api_key`, `livelihood_ai_model`, `livelihood_ai_effort`, `livelihood_ai_max_tokens`, `livelihood_ai_timeout_s`, `livelihood_ai_daily_limit`. New optional package: `anthropic` (`backend/requirements-ai.txt`).
+- The host copy on `feature/module4-livelihood` does **not** have any of this yet (it was integrated before these slices); re-apply `host/` when merging.

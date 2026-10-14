@@ -42,3 +42,6 @@ frontend/ios/Pods/
 .claude/
 .DS_Store
 Thumbs.db
+
+# output of backend/scripts/eval_ask_ai.py (holds real model answers)
+eval_out/

@@ -386,6 +386,15 @@ const Map<String, Map<String, String>> _text = {
         'Schemes that may relate to your ideas. We only link to official pages and cannot say whether you qualify.',
     'ask.item.idea_schemes': '{name}: {count} schemes may relate',
     'ask.chip.schemes': 'Which schemes may help?',
+    'ask.ai_consent_title': 'Let an AI assistant answer other questions?',
+    'ask.ai_consent_body':
+        'For questions our own answers cannot cover, an AI assistant can read the facts of your report. We never send your name or the exact place of your plot. The question you type is sent too, so do not type your name or phone number. Its answers are checked against your report, but please check them yourself.',
+    'ask.ai_allow': 'Allow',
+    'ask.ai_deny': 'Not now',
+    'ask.ai_toggle': 'AI assistant may read my report facts',
+    'ask.ai_label':
+        'Written by an AI assistant from your report. Please check it yourself.',
+    'ask.ai_answer': 'Answer from the AI assistant',
     'ask.chip.heading': 'Where am I heading?',
     'ask.chip.top_ideas': 'What are my best ideas?',
     'ask.chip.idea': 'Tell me about {name}',
@@ -852,6 +861,15 @@ const Map<String, Map<String, String>> _text = {
         'तुमच्या कल्पनांशी संबंधित असू शकणाऱ्या योजना. आम्ही फक्त अधिकृत पानांची लिंक देतो आणि तुम्ही पात्र आहात की नाही हे सांगू शकत नाही.',
     'ask.item.idea_schemes': '{name}: {count} योजना संबंधित असू शकतात',
     'ask.chip.schemes': 'कोणत्या योजना मदत करू शकतात?',
+    'ask.ai_consent_title': 'इतर प्रश्नांची उत्तरे एआय सहाय्यकाने द्यावीत का?',
+    'ask.ai_consent_body':
+        'आमची स्वतःची उत्तरे ज्या प्रश्नांना पुरत नाहीत, त्यासाठी एआय सहाय्यक तुमच्या अहवालातील तथ्ये वाचू शकतो. आम्ही तुमचे नाव किंवा तुमच्या जमिनीचे नेमके ठिकाण कधीही पाठवत नाही. तुम्ही लिहिलेला प्रश्न मात्र पाठवला जातो, म्हणून तुमचे नाव किंवा फोन नंबर लिहू नका. त्याची उत्तरे तुमच्या अहवालाशी तपासली जातात, तरीही कृपया ती स्वतः तपासा.',
+    'ask.ai_allow': 'परवानगी द्या',
+    'ask.ai_deny': 'आत्ता नको',
+    'ask.ai_toggle': 'एआय सहाय्यक माझ्या अहवालातील तथ्ये वाचू शकतो',
+    'ask.ai_label':
+        'तुमच्या अहवालावरून एआय सहाय्यकाने लिहिले. कृपया ते स्वतः तपासा.',
+    'ask.ai_answer': 'एआय सहाय्यकाचे उत्तर',
     'ask.chip.heading': 'मी कोणत्या दिशेने जात आहे?',
     'ask.chip.top_ideas': 'माझ्या सर्वोत्तम कल्पना कोणत्या?',
     'ask.chip.idea': '{name} बद्दल सांगा',

@@ -112,6 +112,24 @@ class AnswerCard extends StatelessWidget {
                   child: Text(s.t('lv_policy_link')),
                 ),
               ),
+            if (answer.isAi) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.smart_toy_outlined,
+                      size: 18, color: c.textSecondary),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      s.t('ask.ai_label'),
+                      style: AppTypography.caption
+                          .copyWith(color: c.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+            ],
             if (answer.kind == AnswerKind.answer &&
                 answer.fromParts.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.md),

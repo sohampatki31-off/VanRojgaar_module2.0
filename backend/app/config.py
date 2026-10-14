@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import model_validator
+from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _DEV_JWT_SECRET = "dev-only-change-me"  # noqa: S105 (refused when env=production)
@@ -31,6 +31,17 @@ class Settings(BaseSettings):
     livelihood_store: Literal["memory", "mongo"] = "memory"
     # Accept the built-in demo users (see app/livelihood/auth.py). NEVER in production.
     livelihood_dev_users: bool = False
+
+    # The AI step of "Ask about your report" (docs/to_do.md). OFF unless switched on AND a key is
+    # set. The key lives only here (the server's environment), never in the app. The model is the
+    # owner's choice (docs/OPEN_QUESTIONS.md Q10).
+    livelihood_ai_enabled: bool = False
+    anthropic_api_key: SecretStr | None = None
+    livelihood_ai_model: str = "claude-opus-5-5"
+    livelihood_ai_effort: Literal["low", "medium", "high"] = "low"
+    livelihood_ai_max_tokens: int = 4000  # thinking is always on, so leave room for it
+    livelihood_ai_timeout_s: float = 25.0
+    livelihood_ai_daily_limit: int = 20  # AI answers per person per day (a cost cap)
 
     @model_validator(mode="after")
     def _safe_in_production(self) -> "Settings":

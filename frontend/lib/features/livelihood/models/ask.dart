@@ -24,6 +24,7 @@ class Answer {
     this.items = const [],
     this.fromParts = const [],
     this.text,
+    this.engine = 'template',
     this.isSampleData = false,
   });
 
@@ -37,7 +38,13 @@ class Answer {
 
   /// Free text, only ever sent by the AI step (and only after the server's number check).
   final String? text;
+
+  /// "template" (written by our own code from the report) or "ai" (an AI assistant wrote the
+  /// words; the server checked every number in them against the report).
+  final String engine;
   final bool isSampleData;
+
+  bool get isAi => engine == 'ai' && text != null;
 
   factory Answer.fromJson(Map<String, dynamic> j) => Answer(
         kind: _kind(j['kind']),
@@ -52,6 +59,7 @@ class Answer {
           for (final p in (j['from_parts'] as List? ?? const [])) '$p',
         ],
         text: j['text'] as String?,
+        engine: (j['engine'] as String?) ?? 'template',
         isSampleData: j['is_sample_data'] == true,
       );
 }
@@ -115,11 +123,15 @@ class AskHistory {
     this.turns = const [],
     this.chips = const [],
     this.hasReport = false,
+    this.aiAvailable = false,
   });
 
   final List<ChatTurn> turns;
   final List<SuggestedQuestion> chips;
   final bool hasReport;
+
+  /// The server has the AI step switched on, so the app may ask his permission to use it.
+  final bool aiAvailable;
 
   factory AskHistory.fromJson(Map<String, dynamic> j) => AskHistory(
         turns: [
@@ -128,5 +140,6 @@ class AskHistory {
         ],
         chips: _chips(j['chips']),
         hasReport: j['has_report'] == true,
+        aiAvailable: j['ai_available'] == true,
       );
 }

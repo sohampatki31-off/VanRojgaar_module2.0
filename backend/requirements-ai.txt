@@ -1,0 +1,4 @@
+# Optional: the AI step of "Ask about your report" (docs/to_do.md, backend/README.md).
+# The app and its tests run without it; install it only where the AI step is switched on.
+-r requirements-core.txt
+anthropic>=1.0

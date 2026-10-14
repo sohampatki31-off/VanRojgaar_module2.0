@@ -24,6 +24,13 @@ _INVISIBLE = dict.fromkeys(map(ord, "​‌‍⁠﻿"))
 
 SHORT_ASCII = 3
 
+_LONG_DIGITS = re.compile(r"[0-9\u0966-\u096f]{4,}")
+
+
+def mask_long_digits(text: str) -> str:
+    """Hide long digit runs (a phone or ID number typed by mistake) in either digit script."""
+    return _LONG_DIGITS.sub("\u2022\u2022\u2022", text)
+
 
 @lru_cache(maxsize=4096)
 def normalise(text: str) -> str:

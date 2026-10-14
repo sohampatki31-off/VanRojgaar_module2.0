@@ -10,8 +10,8 @@ Two groups:
   real users are involved.
 """
 
-import re
 from dataclasses import replace
+from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, Response
@@ -20,9 +20,11 @@ from uuid6 import uuid7
 
 from ..config import get_settings
 from ..errors import ApiError
+from .ai import get_answerer
 from .ask_schemas import AnswerKind, AskHistoryOut, AskOut, AskRequest, ChatTurn
 from .deps import CurrentUser, get_store
-from .domain import ask_engine
+from .domain import ask_ai, ask_engine
+from .domain.ask_text import mask_long_digits
 from .domain.config import DEFAULT_CONFIG, LivelihoodConfig
 from .domain.idea_detail import build_idea_detail
 from .domain.units import AreaUnit
@@ -83,6 +85,7 @@ class DemoReportRequest(BaseModel):
 
 
 Store = Annotated[LivelihoodStore, Depends(get_store)]
+Answerer = Annotated[ask_ai.Answerer | None, Depends(get_answerer)]
 
 
 def _profile_out(stored: StoredProfile, store: LivelihoodStore) -> ProfileOut:
@@ -220,15 +223,12 @@ def latest_report(user: CurrentUser, store: Store) -> ReportOut:
     return report
 
 
-_LONG_DIGITS = re.compile(r"[0-9०-९]{4,}")
-
-
 def _kept_question(question: str | None, kind: AnswerKind) -> str | None:
     """What is saved of a typed question (rule L8). A refused question is not kept at all, and
     long digit runs (a phone or ID number typed by mistake) are masked in the rest."""
     if question is None or kind is AnswerKind.REFUSED_HARMFUL:
         return None
-    return _LONG_DIGITS.sub("•••", question)
+    return mask_long_digits(question)
 
 
 def _current_report(user: UserInfo, store: LivelihoodStore) -> ReportOut:
@@ -248,8 +248,16 @@ def _current_report(user: UserInfo, store: LivelihoodStore) -> ReportOut:
     return report
 
 
+def _may_use_ai(store: LivelihoodStore, uid: str) -> bool:
+    """A cost cap: this many AI calls per person per UTC day. The call is counted BEFORE it is
+    made (so a failed or slow call still counts, and two requests at once cannot both slip under
+    the limit), and the counter is not his history, so clearing his questions does not reset it."""
+    day = datetime.now(UTC).strftime("%Y-%m-%d")
+    return store.take_ai_use(uid, day, get_settings().livelihood_ai_daily_limit)
+
+
 @router.post("/ask", response_model=AskOut)
-def ask(body: AskRequest, user: CurrentUser, store: Store) -> AskOut:
+def ask(body: AskRequest, user: CurrentUser, store: Store, answerer: Answerer) -> AskOut:
     """
     Ask about HIS report. The safety check runs first and in code; the answer comes only from his
     own saved report (built now if he has none), and every number in it is checked against the
@@ -263,6 +271,17 @@ def ask(body: AskRequest, user: CurrentUser, store: Store) -> AskOut:
         answer = ask_engine.respond_chip(body.chip, report, library)
         if answer is None:
             raise ApiError(422, "UNKNOWN_CHIP", "livelihood.unknown_chip")
+    elif answerer is not None and body.ai_consent:
+        # safety first, then the engine; the model only gets what is left, and its words are
+        # checked before they are shown (domain/ask_ai.py)
+        answer = ask_ai.respond_with_ai(
+            body.question or "",
+            report,
+            library,
+            answerer,
+            body.lang.value,
+            permit=lambda: _may_use_ai(store, uid),
+        )
     else:
         answer = ask_engine.respond(body.question or "", report, library)
 
@@ -279,7 +298,7 @@ def ask(body: AskRequest, user: CurrentUser, store: Store) -> AskOut:
 
 
 @router.get("/ask/history", response_model=AskHistoryOut)
-def ask_history(user: CurrentUser, store: Store) -> AskHistoryOut:
+def ask_history(user: CurrentUser, store: Store, answerer: Answerer) -> AskHistoryOut:
     """His earlier questions and answers, and the suggestions for his report. Only his own."""
     uid = str(user.id)
     report = store.latest_report(uid)
@@ -287,6 +306,7 @@ def ask_history(user: CurrentUser, store: Store) -> AskHistoryOut:
         turns=store.list_chat(uid),
         chips=ask_engine.build_chips(report) if report else [],
         has_report=report is not None,
+        ai_available=answerer is not None,
     )
 
 

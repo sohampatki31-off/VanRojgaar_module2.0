@@ -12,9 +12,10 @@ Collections use the `lv_` prefix (docs/BACKEND_PLAN.md §2). Geometry is GeoJSON
 from collections.abc import Sequence
 from typing import Any
 
-from pymongo import ASCENDING, DESCENDING, GEOSPHERE, IndexModel, MongoClient
+from pymongo import ASCENDING, DESCENDING, GEOSPHERE, IndexModel, MongoClient, ReturnDocument
 from pymongo.collection import Collection
 from pymongo.database import Database
+from pymongo.errors import DuplicateKeyError
 
 from ..config import Settings
 from .ask_schemas import ChatTurn
@@ -31,6 +32,7 @@ PROFILES = "lv_profile"
 VILLAGES = "lv_village_geo"
 REPORTS = "lv_report"
 CHAT = "lv_chat_log"
+AI_USAGE = "lv_ai_usage"
 RESOURCES = "lv_resource"
 IDEAS = "lv_idea"
 SCHEMES = "lv_scheme"
@@ -45,6 +47,11 @@ INDEXES: dict[str, list[IndexModel]] = {
         IndexModel(
             [("user_id", ASCENDING), ("generated_at", DESCENDING), ("report_id", DESCENDING)],
             name="user_latest",
+        )
+    ],
+    AI_USAGE: [
+        IndexModel(
+            [("user_id", ASCENDING), ("day", ASCENDING)], name="user_day_unique", unique=True
         )
     ],
     CHAT: [
@@ -264,6 +271,21 @@ class MongoStore:
 
     def delete_chat(self, user_id: str) -> int:
         return self._col(CHAT).delete_many({"user_id": user_id}).deleted_count
+
+    def take_ai_use(self, user_id: str, day: str, limit: int) -> bool:
+        # one atomic step: raise the count only while it is under the limit. With the count at
+        # the limit the filter matches nothing, the upsert tries to insert, and the unique index
+        # (user_id, day) refuses it: that is "over the limit".
+        try:
+            doc = self._col(AI_USAGE).find_one_and_update(
+                {"user_id": user_id, "day": day, "count": {"$lt": limit}},
+                {"$inc": {"count": 1}},
+                upsert=True,
+                return_document=ReturnDocument.AFTER,
+            )
+        except DuplicateKeyError:
+            return False
+        return doc is not None
 
     # shared data
     def get_village(self, village_id: str) -> VillageGeo | None:
