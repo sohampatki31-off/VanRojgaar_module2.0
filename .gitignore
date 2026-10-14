@@ -6,6 +6,7 @@ previous/
 *.jpg
 *.png
 !frontend/assets/**/*.png
+!frontend/android/**/*.png
 
 # Secrets and local config
 .env
@@ -31,7 +32,6 @@ frontend/.dart_tool/
 frontend/build/
 frontend/.flutter-plugins*
 frontend/.packages
-frontend/pubspec.lock
 frontend/android/.gradle/
 frontend/android/local.properties
 frontend/ios/Pods/

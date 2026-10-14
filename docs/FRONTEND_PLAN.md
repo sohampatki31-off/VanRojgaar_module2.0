@@ -236,15 +236,32 @@ The host uses a hand-written `AppLocalizations` map (`services/localization_serv
 
 ## 9. Frontend checklists
 
-**M0**
-- [ ] `LivelihoodRepository` + `Seed…` implementation (UI works with no server)
-- [ ] Models + JSON parsing for the report contract ([BACKEND_PLAN](BACKEND_PLAN.md) §6)
-- [ ] `livelihood_strings.dart` (en + mr)
-- [ ] Widgets: trust label, badges, resource card, idea card, footer
-- [ ] S1 home, S2 intake (5 steps), S3 location picker, S4 report, S5 resources
-- [ ] Dashboard card + route registration in the host
-- [ ] `Remote…` repository wired to the backend once it is up
-- [ ] Hive cache of the last report
+**Slice 1: done (branch `frontend`)**: report side, runs with no server; 15 tests, `flutter analyze` clean
+- [x] `LivelihoodRepository` + `Seed…` implementation (bundled report built by the backend from SAMPLE data)
+- [x] Models + JSON parsing for the report contract ([BACKEND_PLAN](BACKEND_PLAN.md) §6), with **no numeric score anywhere**
+- [x] `livelihood_strings.dart` (en + mr draft; hi/kn fall back to en); `{key, params}` rendering
+- [x] Widgets: status pills (icon + word), trust label, resource card, idea card, analysis card, weather bars (Sample), footer
+- [x] S1 home, S4 report, S5 resources (filter), S7 policy; `livelihoodRoutes` ready to register in the host
+- [x] Large-text (2×) overflow fixed; contrast: saffron text uses a darker orange on light surfaces (`lvEmphasis`)
+- [x] Throwaway shell (`lib/shell/`): theme, language and theme switch. Deleted at merge
+
+**Modules 2 and 3: done (branch `frontend`)**: 74 tests + 3 live-contract tests; `flutter analyze` clean
+- [x] S2 intake form: 5 steps (land with acre/guntha/hectare conversion, animals, what he owns, past work and money, location by GPS / typed coordinates / village centre); every question optional; only a malformed answer is refused
+- [x] `LivelihoodProfile` mirrors the backend request; local profile controller; "Change my details"; **Delete my answers** with confirmation
+- [x] Host-style `ApiClient` + `ApiException`; `RemoteLivelihoodRepository` (live report, last saved report as a fallback, with a quiet "showing your last saved report" banner); a refusal (4xx) is never hidden behind an old report
+- [x] `OfflineFirstProfileRepository`: a save always succeeds on the phone and is sent later; a refused save is not kept; a **delete is retried until it reaches the server** (rule L8)
+- [x] Encrypted Hive cache (key in the Android Keystore) behind a `CacheStore` interface; damaged entries are dropped, never shown
+- [x] Plain-language error mapping (`errorMessageKey`), never a raw code; 10 new en/mr strings for failures and sync
+- [x] Live contract test: the real client and repositories against the running backend (save, second phone, report parse incl. Marathi, offline fallback, delete)
+- [x] Home no longer builds a report just by opening (it loads details only)
+
+**Next**
+- [ ] S3 map pin picker (module 3 uses typed coordinates or GPS)
+- [ ] Idea detail screen; a scheduled sync retry (today a pending change is sent on the next open)
+- [ ] Dashboard card + route registration in the host; swap the shell's `ApiClient` and token for the host's
+- [ ] Run on a real Android phone and an emulator (not yet done: the Hive/Keystore path and GPS are only unit-tested)
 
 **Later**
-- [ ] Idea detail, weather chart, schemes, Ask screen, policy page, Hindi, delete-my-answers screen, FRC confirm flow, offline refresh banner
+- [ ] Weather chart with real data, schemes, Ask screen, Hindi, FRC confirm flow, offline refresh banner
+
+**Known design note (host-wide):** white text on the brand saffron button (`#FF7A00`) is 2.6:1, below WCAG AA (3:1 for large text). Slice 1 keeps the host's button style for consistency; the team should decide whether to darken the button or use dark text (6.8:1) across the whole app.

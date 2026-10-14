@@ -1,0 +1,43 @@
+name: vanmitra_rozgar
+description: "VanMitra Module 4 (VanRozgar): personal livelihood report for a landowner. Standalone shell; lib/features/livelihood/ is copied into the host app at merge."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.4
+
+# Same packages and versions as the host (vanMitraAI/vanmitra_tem). No new dependency is
+# introduced by the feature itself.
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_riverpod: ^2.4.0
+  intl: ^0.20.2
+  geolocator: ^11.0.0
+  http: ^1.2.0
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  flutter_secure_storage: ^10.3.1
+  path_provider: ^2.1.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: NotoSansDevanagari
+      fonts:
+        - asset: assets/fonts/NotoSansDevanagari-Regular.ttf
+        - asset: assets/fonts/NotoSansDevanagari-Bold.ttf
+          weight: 700
+
+  assets:
+    # Contract-accurate report built from SAMPLE (synthetic) data. Regenerate with
+    # backend/scripts/export_sample_report.py
+    - assets/livelihood/sample_report.json
