@@ -7,7 +7,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 import 'package:vanmitra_rozgar/core/api/api_client.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/error_mapping.dart';
 import 'package:vanmitra_rozgar/features/livelihood/data/livelihood_api.dart';
@@ -42,25 +41,86 @@ class _Server {
   http.Response Function(http.Request) handler;
   final List<http.Request> calls = [];
 
-  /// The way the feature talks to the server: the client behind the adapter.
-  LivelihoodApi api({
-    String base = 'http://host:8010',
-    String? token = 'tok',
-    Duration timeout = const Duration(seconds: 5),
-  }) =>
-      HostApiAdapter(
-        ApiClient(
-          baseUrl: base,
-          tokenProvider: token == null ? null : () async => token,
-          client: MockClient((req) async {
-            calls.add(req);
-            return handler(req);
-          }),
-        ),
-        timeout: timeout,
-      );
+  /// The server as the feature sees it (a LivelihoodApi): the same answers a real client would
+  /// give, without depending on how the client is built, so these tests run unchanged in the host.
+  LivelihoodApi api() => _FakeApi(this);
 
   Iterable<String> get paths => calls.map((c) => '${c.method} ${c.url.path}');
+}
+
+class _FakeApi implements LivelihoodApi {
+  _FakeApi(this._server);
+
+  final _Server _server;
+
+  Future<dynamic> _call(
+    String method,
+    String path,
+    Map<String, dynamic>? body,
+  ) async {
+    final request =
+        http.Request(method, Uri.parse('http://host:8010/api/v1$path'));
+    if (body != null) request.body = jsonEncode(body);
+    _server.calls.add(request);
+    final http.Response response;
+    try {
+      response = _server.handler(request);
+    } on SocketException catch (e) {
+      throw NetworkException(e); // what the adapter does for a lost connection
+    }
+    final text = utf8.decode(response.bodyBytes);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return text.isEmpty ? null : jsonDecode(text);
+    }
+    throw ApiException.fromJson(
+      response.statusCode,
+      jsonDecode(text) as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<dynamic> get(String path) => _call('GET', path, null);
+
+  @override
+  Future<dynamic> post(String path, {Map<String, dynamic>? body}) =>
+      _call('POST', path, body);
+
+  @override
+  Future<dynamic> put(String path, {Map<String, dynamic>? body}) =>
+      _call('PUT', path, body);
+
+  @override
+  Future<dynamic> delete(String path) => _call('DELETE', path, null);
+}
+
+/// An ApiClient that does whatever the test says. A subclass works for the host's client and
+/// the standalone one alike, so the adapter is tested the same way in both repos.
+class _ScriptedClient extends ApiClient {
+  _ScriptedClient(this.script);
+
+  final Future<dynamic> Function() script;
+
+  @override
+  Future<dynamic> get(String path, {bool requireAuth = true}) => script();
+
+  @override
+  Future<dynamic> post(
+    String path, {
+    Map<String, dynamic>? body,
+    bool requireAuth = true,
+  }) =>
+      script();
+
+  @override
+  Future<dynamic> put(
+    String path, {
+    Map<String, dynamic>? body,
+    bool requireAuth = true,
+  }) =>
+      script();
+
+  @override
+  Future<dynamic> delete(String path, {bool requireAuth = true}) => script();
 }
 
 http.Response _offline(http.Request _) =>
@@ -82,130 +142,50 @@ Map<String, dynamic> _profileOut(LivelihoodProfile p) => {
     };
 
 void main() {
-  group('ApiClient', () {
-    test(
-      'builds the URL with or without /api/v1 and a trailing slash',
-      () async {
-        for (final base in [
-          'http://h:8010',
-          'http://h:8010/',
-          'http://h:8010/api/v1',
-          'http://h:8010/api/v1/',
-        ]) {
-          final s = _Server((_) => _json({'ok': true}));
-          await s.api(base: base).get('/livelihood/meta');
-          expect(
-            s.calls.single.url.toString(),
-            'http://h:8010/api/v1/livelihood/meta',
-            reason: base,
-          );
-        }
-      },
-    );
-
-    test(
-        'sends the bearer token and JSON headers, and none when there is no token',
-        () async {
-      final s = _Server((_) => _json({}));
-      await s.api().post('/x', body: {'a': 1});
-      expect(s.calls.single.headers['Authorization'], 'Bearer tok');
-      expect(
-        s.calls.single.headers['Content-Type'],
-        contains('application/json'),
-      );
-      expect(jsonDecode(s.calls.single.body), {'a': 1});
-
-      final anon = _Server((_) => _json({}));
-      await anon.api(token: null).get('/x');
-      expect(anon.calls.single.headers.containsKey('Authorization'), isFalse);
-    });
-
-    test('reads Marathi as UTF-8', () async {
-      final s = _Server((_) => _json({'name': 'ओझर'}));
-      final body = await s.api().get('/x') as Map<String, dynamic>;
-      expect(body['name'], 'ओझर');
-    });
-
-    test('an empty 204 answer is null', () async {
-      final s = _Server((_) => http.Response('', 204));
-      expect(await s.api().delete('/x'), isNull);
-    });
-
-    test(
-      'a server error body becomes an ApiException with its message key',
-      () async {
-        final s = _Server(
-          (_) => _error(422, 'livelihood.radius_too_large', 'RADIUS_TOO_LARGE'),
+  group('HostApiAdapter', () {
+    HostApiAdapter adapter(Future<dynamic> Function() script,
+            [Duration? timeout]) =>
+        HostApiAdapter(
+          _ScriptedClient(script),
+          timeout: timeout ?? const Duration(seconds: 5),
         );
-        await expectLater(
-          s.api().post('/x'),
-          throwsA(
-            isA<ApiException>()
-                .having((e) => e.statusCode, 'status', 422)
-                .having(
-                  (e) => e.messageKey,
-                  'key',
-                  'livelihood.radius_too_large',
-                )
-                .having((e) => e.error, 'error', 'RADIUS_TOO_LARGE'),
-          ),
-        );
-      },
-    );
 
-    test('a 500 that is not our JSON is still a clean ApiException', () async {
-      final s = _Server((_) => http.Response('<html>Bad gateway</html>', 502));
+    test('passes a good answer through unchanged', () async {
+      final api = adapter(() async => {'ok': true});
+      expect(await api.get('/x'), {'ok': true});
+      expect(await api.post('/x', body: {'a': 1}), {'ok': true});
+      expect(await api.put('/x', body: {'a': 1}), {'ok': true});
+      expect(await api.delete('/x'), {'ok': true});
+    });
+
+    test('a server answer, even an error, is NOT hidden as offline', () async {
+      final e = ApiException(statusCode: 422, error: 'E', messageKey: 'k');
       await expectLater(
-        s.api().get('/x'),
-        throwsA(
-          isA<ApiException>().having(
-            (e) => e.messageKey,
-            'key',
-            'error.network_or_server',
-          ),
-        ),
+        adapter(() async => throw e).post('/x'),
+        throwsA(same(e)),
       );
     });
 
     test(
-      'a 200 that is not JSON (a captive portal) counts as offline',
-      () async {
-        final s = _Server(
-          (_) => http.Response('<html>Sign in to Wi-Fi</html>', 200),
-        );
+        'no network, a client error, a non-JSON reply and a timeout are all offline',
+        () async {
+      for (final failure in <Object>[
+        const SocketException('down'),
+        http.ClientException('reset'),
+        const FormatException('<html>Sign in to Wi-Fi</html>'),
+      ]) {
         await expectLater(
-          s.api().get('/x'),
+          adapter(() async => throw failure).get('/x'),
           throwsA(isA<NetworkException>()),
+          reason: '$failure',
         );
-      },
-    );
-
-    test(
-      'no network, a timeout and a client error all count as offline',
-      () async {
-        await expectLater(
-          _Server(_offline).api().get('/x'),
-          throwsA(isA<NetworkException>()),
-        );
-        final slow = HostApiAdapter(
-          ApiClient(
-            baseUrl: 'http://h',
-            client: MockClient((_) => Completer<http.Response>().future),
-          ),
-          timeout: const Duration(milliseconds: 20),
-        );
-        await expectLater(slow.get('/x'), throwsA(isA<NetworkException>()));
-        final broken = HostApiAdapter(
-          ApiClient(
-            baseUrl: 'http://h',
-            client: MockClient(
-              (_) async => throw http.ClientException('reset'),
-            ),
-          ),
-        );
-        await expectLater(broken.get('/x'), throwsA(isA<NetworkException>()));
-      },
-    );
+      }
+      final slow = adapter(
+        () => Completer<dynamic>().future, // never answers
+        const Duration(milliseconds: 20),
+      );
+      await expectLater(slow.get('/x'), throwsA(isA<NetworkException>()));
+    });
   });
 
   group('errorMessageKey', () {

@@ -1,0 +1,128 @@
+﻿diff --git a/vanmitra_backend/app/api/v1/__init__.py b/vanmitra_backend/app/api/v1/__init__.py
+index 8e405ed..72a1a76 100644
+--- a/vanmitra_backend/app/api/v1/__init__.py
++++ b/vanmitra_backend/app/api/v1/__init__.py
+@@ -1,5 +1,6 @@
+ from fastapi import APIRouter
+ 
++from ...livelihood.router import router as livelihood_router
+ from . import (
+     admin,
+     auth,
+@@ -42,3 +43,4 @@ router.include_router(documents.router)
+ router.include_router(followup.router)
+ router.include_router(notifications.router)
+ router.include_router(devices.router)
++router.include_router(livelihood_router)  # Module 4 (VanRozgar): /api/v1/livelihood/*
+diff --git a/vanmitra_backend/app/config.py b/vanmitra_backend/app/config.py
+index e7eb324..b44d56a 100644
+--- a/vanmitra_backend/app/config.py
++++ b/vanmitra_backend/app/config.py
+@@ -44,10 +44,18 @@ class Settings(BaseSettings):
+     # Old "Model A" AI endpoints, kept until the app migrates (BACKEND_PLAN B-04).
+     enable_legacy_api: bool = True
+ 
++    # Module 4 (VanRozgar, the livelihood report). The demo route is unauthenticated and serves
++    # SAMPLE data: keep it off anywhere real users are involved.
++    livelihood_demo_endpoints: bool = False
++    livelihood_default_radius_m: int = 5000  # "near" = 5 km
++    livelihood_max_radius_m: int = 10000
++
+     @model_validator(mode="after")
+     def _no_dev_secret_in_production(self) -> "Settings":
+         if self.env == "production" and self.jwt_secret == _DEV_JWT_SECRET:
+             raise ValueError("VANMITRA_JWT_SECRET must be set in production")
++        if self.env == "production" and self.livelihood_demo_endpoints:
++            raise ValueError("VANMITRA_LIVELIHOOD_DEMO_ENDPOINTS must be off in production")
+         return self
+ 
+ 
+diff --git a/vanmitra_backend/app/mongo.py b/vanmitra_backend/app/mongo.py
+index 945d879..6a7aed1 100644
+--- a/vanmitra_backend/app/mongo.py
++++ b/vanmitra_backend/app/mongo.py
+@@ -442,6 +442,12 @@ INDEXES: dict[str, list[IndexModel]] = {
+     ],
+ }
+ 
++# Module 4 (VanRozgar) collections: lv_profile, lv_report, lv_resource (2dsphere), lv_idea, ...
++# Created, like the rest, by `python -m scripts.setup_mongo` (a person runs it).
++from .livelihood.mongo_store import INDEXES as _LIVELIHOOD_INDEXES  # noqa: E402
++
++INDEXES.update(_LIVELIHOOD_INDEXES)
++
+ 
+ def ensure_indexes(database: Database[Raw]) -> list[str]:
+     """Create the collections' indexes if missing (safe to run again). Returns their names."""
+diff --git a/vanmitra_backend/requirements-core.txt b/vanmitra_backend/requirements-core.txt
+index 501ae74..3e18e76 100644
+--- a/vanmitra_backend/requirements-core.txt
++++ b/vanmitra_backend/requirements-core.txt
+@@ -13,3 +13,4 @@ pyjwt>=2.9
+ argon2-cffi>=23.1
+ uuid6>=2024.7.10
+ jinja2>=3.1
++numpy>=1.26
+diff --git a/vanmitra_tem/lib/app.dart b/vanmitra_tem/lib/app.dart
+index 4023352..42f6328 100644
+--- a/vanmitra_tem/lib/app.dart
++++ b/vanmitra_tem/lib/app.dart
+@@ -20,6 +20,7 @@ import 'screens/gram_sabha/resolution_ledger_screen.dart';
+ import 'screens/profile/profile_screen.dart';
+ import 'core/routes/app_router.dart';
+ import 'features/form_b/form_b_home_screen.dart';
++import 'features/livelihood/livelihood_routes.dart'; // Module 4 (VanRozgar)
+ import 'screens/claims/claim_type_selection_screen.dart';
+ import 'screens/claims/claim_form_screen.dart';
+ import 'screens/claims/evidence_checklist_screen.dart';
+@@ -91,6 +92,8 @@ class VanMitraApp extends ConsumerWidget {
+         );
+       },
+       routes: {
++        // Module 4 (VanRozgar): /livelihood, /livelihood/details, /report, /resources, /policy
++        ...livelihoodRoutes,
+         AppRouter.splash: (_) => const SplashScreen(),
+         AppRouter.languageSelection: (_) => const LanguageSelectionScreen(),
+         AppRouter.registration: (_) => const RegistrationScreen(),
+diff --git a/vanmitra_tem/lib/screens/home/villager_home_screen.dart b/vanmitra_tem/lib/screens/home/villager_home_screen.dart
+index 70d4cf4..dc92665 100644
+--- a/vanmitra_tem/lib/screens/home/villager_home_screen.dart
++++ b/vanmitra_tem/lib/screens/home/villager_home_screen.dart
+@@ -19,6 +19,8 @@ import '../../widgets/portal_frame_scaffold.dart';
+ import '../../features/case_hub/cases_list_screen.dart';
+ import '../../features/case_hub/new_claim.dart';
+ import '../../features/gram_sabha_records/gram_sabha_records_screen.dart';
++import '../../features/livelihood/livelihood_routes.dart';
++import '../../features/livelihood/livelihood_strings.dart';
+ import '../profile/profile_screen.dart';
+ import 'alert_detail_screen.dart';
+ import 'boundary_map_screen.dart';
+@@ -223,6 +225,16 @@ class _HomeTab extends ConsumerWidget {
+                           onTap: () => Navigator.pushNamed(
+                               context, AppRouter.fraRightsInfo),
+                         ),
++                        const SizedBox(height: AppSpacing.sm),
++                        // Module 4 (VanRozgar): resources near his land + work ideas
++                        ActionListItem(
++                          icon: Icons.agriculture_rounded,
++                          title: LivelihoodStrings.of(context).t('lv_card_title'),
++                          subtitle: LivelihoodStrings.of(context).t('lv_card_sub'),
++                          iconColor: AppColors.saffron,
++                          onTap: () => Navigator.pushNamed(
++                              context, LivelihoodRoutes.home),
++                        ),
+                         const SizedBox(height: AppSpacing.xl),
+ 
+                         // 6. Satellite Parcel Status Card (Module B)
+diff --git a/vanmitra_tem/pubspec.yaml b/vanmitra_tem/pubspec.yaml
+index 3116132..9061aba 100644
+--- a/vanmitra_tem/pubspec.yaml
++++ b/vanmitra_tem/pubspec.yaml
+@@ -116,5 +116,7 @@ flutter:
+     - assets/ai_config/eligibility_rules.json
+     - assets/images/vanmitra_logo.png
+     - assets/images/samples/
++    # Module 4 (VanRozgar): the SAMPLE report that the demo / offline fallback reads
++    - assets/livelihood/sample_report.json
+     # Module C: FaceNet TFLite model (generated by convert_facenet.py)
+     - assets/ml/facenet.tflite

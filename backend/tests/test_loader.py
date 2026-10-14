@@ -5,15 +5,10 @@ from typing import Any
 
 import pytest
 
+from app.livelihood import seed
 from app.livelihood.loader import validate_dataset
 
-SAMPLE = (
-    Path(__file__).resolve().parent.parent
-    / "app"
-    / "livelihood"
-    / "seed"
-    / "sample_resources.geojson"
-)
+SAMPLE = Path(seed.__file__).resolve().parent / "sample_resources.geojson"  # same in any repo
 
 
 @pytest.fixture

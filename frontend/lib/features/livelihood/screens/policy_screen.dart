@@ -19,7 +19,7 @@ class PolicyScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          Icon(Icons.pets_rounded, size: 40, color: AppColors.forestSage),
+          const Icon(Icons.pets_rounded, size: 40, color: AppColors.forestSage),
           const SizedBox(height: AppSpacing.md),
           Text(
             s.t('lv_policy_body'),

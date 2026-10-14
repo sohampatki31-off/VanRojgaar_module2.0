@@ -2,6 +2,19 @@
 
 > The Module 4 PDF (§3) promises a `docs/MERGE_NOTES.md` listing every connection point the host app must supply. This is that file, written against the **actual host code** in `C:\Soham\college work\vanMitraAI` (read on 2026-10-14). Re-check each item when you start; the host moves fast.
 
+> ## STATUS: integrated on a local host branch (2026-10-14)
+>
+> Done on `vanMitraAI` branch `feature/module4-livelihood`, commit `69b85ea`, **not pushed**. What happened differently from the plan below, after reading the host code properly:
+> - **Only 34 lines changed in 7 existing host files** (see `host/host-edits.patch`). `app_router.dart` and `api_endpoints.dart` were **not** touched: the feature registers its own routes (`...livelihoodRoutes` in `app.dart`) and keeps its own endpoint paths.
+> - **One host-specific backend file**, `deps.py` (see `host/README.md`): the user comes from the host login and `user_role` grants; the store from `get_database()`. The standalone `auth.py` is not copied.
+> - **A `LivelihoodApi` adapter** wraps the host's `ApiClient`, which throws raw socket errors and has no timeout. The feature maps those to "offline" itself. The host's client is used unchanged.
+> - **Dart 3.1 compatible** (the host's SDK constraint): newer syntax such as `(_, _)` and `{'k': ?v}` was removed.
+> - **Live is the default wiring**; the standalone shell overrides it with the sample for the demo. The host needs no `main.dart` change (the encrypted cache opens lazily).
+> - **No new packages** in the host. Host analyzer stays at its baseline (199). Backend 245 and Flutter 95 tests pass.
+> - **Nothing was run against a database.** A person must run the steps in the host's `docs/MODULE4_LIVELIHOOD.md`.
+>
+> The detailed notes below are the original plan and are kept for reference.
+
 **Principle:** all new code lives in two isolated folders. The host changes are a handful of **one-line registrations**.
 
 | Side | New code | Host registration points |

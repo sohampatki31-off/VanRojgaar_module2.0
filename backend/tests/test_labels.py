@@ -1,6 +1,4 @@
 import pytest
-from hypothesis import given
-from hypothesis import strategies as st
 
 from app.livelihood.domain.config import LivelihoodConfig
 from app.livelihood.domain.labels import label_for, label_resource, reach
@@ -89,19 +87,17 @@ def test_reach_bands_and_no_road() -> None:
     assert reach(900, {"road_access": False}) == pytest.approx(0.8)
 
 
-@given(
-    d=st.floats(min_value=0, max_value=20000),
-    months=st.integers(min_value=0, max_value=12),
-    perennial=st.sampled_from([True, False, None]),
-    condition=st.sampled_from(["good", "fair", "poor", None]),
-)
-def test_u_always_in_unit_range(
-    d: float, months: int, perennial: bool | None, condition: str | None
-) -> None:
-    attrs: dict[str, object] = {"months_available": months}
-    if perennial is not None:
-        attrs["perennial"] = perennial
-    if condition is not None:
-        attrs["condition"] = condition
-    res = label_resource(ResourceKind.WELL, attrs, d)
-    assert 0.0 <= res.u <= 1.0
+def test_u_always_in_unit_range() -> None:
+    """Every combination of the inputs gives a score in [0, 1] (a plain grid, no extra library)."""
+    distances = [0, 1, 999, 1000, 2500, 4999, 5000, 9000, 20000]
+    for d in distances:
+        for months in range(0, 13):
+            for perennial in (True, False, None):
+                for condition in ("good", "fair", "poor", None):
+                    attrs: dict[str, object] = {"months_available": months}
+                    if perennial is not None:
+                        attrs["perennial"] = perennial
+                    if condition is not None:
+                        attrs["condition"] = condition
+                    res = label_resource(ResourceKind.WELL, attrs, d)
+                    assert 0.0 <= res.u <= 1.0, (d, attrs)
